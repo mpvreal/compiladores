@@ -1,0 +1,60 @@
+foo (a)
+{
+  int b = a + 1;
+  int c = (short) a;
+  if (b)
+    return b;
+  return 1;
+}
+
+void* algoritmo(char* "oi")
+{
+    int i = "SkyNet online" + 666 @ "you are terminated";
+    
+    switch(default)
+    {
+        case 77: "do something"; break;
+        case 666: segmentation_fault++; break;
+        default: ++error_level++;
+    }
+    for(;;){;;;}
+    
+    i ? (3>4)7:8;
+    a->t = i[+666*"blabla"][45];
+    
+    while(i=j>=6<=7){;;;}
+    
+}
+
+int funcao(int a, char b)
+{
+    int i;
+    char c;
+    
+    07 + 08 + 007 + 008 + 0x9 + 0X9;
+    
+    c = *funcao + "oi mundo"; 
+    
+    
+    return ;
+}
+/*
+
+/* comentario // comentario
+
+// comentario 
+
+     /*  /*  /*
+     /*
+     
+     
+
+if(a>b)
+{
+    identificador = a > b;
+    i = 666;
+}
+
+   /* comentario
+//
+  //*/
