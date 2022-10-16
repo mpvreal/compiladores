@@ -23,6 +23,7 @@ typedef enum tokens{
 	REPITA,
 	DE,
 	DIV,
+	BARRA,
 	SE,
 	SENAO,
 	VARIAVEIS,
@@ -62,6 +63,7 @@ typedef enum tokens{
 	FECHA_COL,
 	ABRE_PAR,
 	FECHA_PAR,
+	VETOR,
 	EOF_TOK
 } token_t;
 

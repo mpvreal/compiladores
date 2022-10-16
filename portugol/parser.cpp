@@ -1,5 +1,11 @@
+#include <iostream>
+
 #include "parser.hpp"
 
-// void parser::push_symbol(symbol s){
-//     symbols.push(s);
-// }
+inline void parser::error(lexeme& l){
+    std::cout << "ERRO DE SINTAXE. Linha: " << l.get_line() 
+        << " Coluna: " << l.get_column() << " -> '" << 
+        l.get_content() << '\'';
+
+    exit(1);
+}

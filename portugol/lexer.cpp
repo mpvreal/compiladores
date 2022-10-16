@@ -44,7 +44,7 @@ void lexer::start_lexing(std::istream& src){
         else{
             tok = states[last_final].tok;
 
-            if(tok == ERRO){
+            if(tok == NULO){
                 error(ch);
                 reset_state(src, line, column);
                 return;

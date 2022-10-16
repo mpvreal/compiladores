@@ -35,5 +35,3 @@ class lexer{
         size_t line = 1,
                column = 1;
 };
-
-// }

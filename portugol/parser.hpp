@@ -15,7 +15,8 @@ class parser{
         parser();
         ~parser();
         void parse(std::vector<lexeme> token_stream);
-		void push_symbol(token_t (parser::*symbol)(lexeme&));
+		inline void error(lexeme& l);
+		// void push_symbol(token_t (parser::*symbol)(lexeme&));
 
     private:
         std::stack<token_t (parser::*)(lexeme&)> symbols;
@@ -76,6 +77,7 @@ class parser{
 	            repita(lexeme& l),
 	            de(lexeme& l),
 	            div(lexeme& l),
+				barra(lexeme& l),
 	            se(lexeme& l),
 	            senao(lexeme& l),
 	            variaveis(lexeme& l),
@@ -115,6 +117,7 @@ class parser{
 	            fecha_col(lexeme& l),
 	            abre_par(lexeme& l),
 	            fecha_par(lexeme& l),
+				vetor(lexeme& l),
                 eof_tok(lexeme& l);
 };
 

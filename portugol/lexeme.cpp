@@ -2,7 +2,7 @@
 
 #include "lexeme.hpp"
 
-static const char* token_names[56]{	
+static const char* token_names[58]{	
 	"NULO",
 	"ID",
 	"NUM_INTEIRO",
@@ -20,6 +20,7 @@ static const char* token_names[56]{
 	"REPITA",
 	"DE",
 	"DIV",
+	"BARRA",
 	"SE",
 	"SENAO",
 	"VARIAVEIS",
@@ -59,6 +60,7 @@ static const char* token_names[56]{
 	"FECHA_COL",
 	"ABRE_PAR",
 	"FECHA_PAR",
+	"FIM_DE_ARQUIVO"
 };
 
 lexeme::lexeme(std::string& content, token_t tok, size_t line,
