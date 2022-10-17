@@ -50,16 +50,15 @@ void lexer::start_lexing(std::istream& src){
                 return;
             }
 
-            if(tok == ID || tok == NUM_INTEIRO || 
-			    tok == NUM_REAL || tok == STRING)
+            if( !(tok == WHITESPACE || tok == LINE_COMMENT || tok == BLOCK_COMMENT) )
                 tokens.push_back(lexeme(text, tok, this->line, this->column));
-            else
-                tokens.push_back(lexeme(tok, this->line, this->column));
 
             reset_state(src, line, column);
             text.clear();
         }
     } while(ch != EOF);
+
+    tokens.push_back(lexeme(EOF_TOK, line, column));
 }
 
 inline transition_t lexer::consume(int ch){

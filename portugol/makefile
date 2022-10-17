@@ -15,8 +15,9 @@ CC = g++
 
 #	Flags
 CC_FLAGS = -fstack-protector-all	\
+		   -fstack-check			\
 		   -g						\
-		   -fstack-check
+		   -std=c++11
 
 #	Compilação e linkagem
 $(PROJ): $(OBJ)

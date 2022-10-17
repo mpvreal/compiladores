@@ -72,7 +72,6 @@ class lexeme{
         lexeme(std::string& content, token_t tok, 
 			size_t line, size_t column);
 		lexeme(token_t tok, size_t line, size_t column);
-		~lexeme();
 		std::string get_content();
 		token_t get_tok();
 		size_t get_line();

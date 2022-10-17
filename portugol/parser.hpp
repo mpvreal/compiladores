@@ -1,24 +1,26 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
+#include <iostream>
 #include <stack>
 #include <vector>
 #include <functional>
 
 #include "lexeme.hpp"
 
-// typedef ;
-// typedef std::function<token_t(lexeme&)> symbol;
-
 class parser{
     public:
-        parser();
-        ~parser();
+        parser(){};
         void parse(std::vector<lexeme> token_stream);
-		inline void error(lexeme& l);
-		// void push_symbol(token_t (parser::*symbol)(lexeme&));
 
     private:
+		inline void error(lexeme& l){
+			std::cout << "ERRO DE SINTAXE. Linha: " << l.get_line() 
+				<< " Coluna: " << l.get_column() << " -> '" << 
+				l.get_content() << '\'';
+
+			exit(1);
+		};
         std::stack<token_t (parser::*)(lexeme&)> symbols;
         std::vector<lexeme>::iterator cursor;
 		
