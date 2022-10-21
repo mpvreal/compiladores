@@ -22,10 +22,11 @@ class parser{
 
 			exit(1);
 		};
-        std::stack<token_t (parser::*)(lexeme&)> symbols;
+        std::stack<void (parser::*)(lexeme&)> symbols;
+		// std::stack<std::string> debug;
         std::vector<lexeme>::iterator cursor;
 		
-		token_t S(lexeme& l),
+		void S(lexeme& l),
                 Programa(lexeme& l),
                 ProcedimentoFuncao(lexeme& l),
                 DeclaraProcedimento(lexeme& l),

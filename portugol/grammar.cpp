@@ -2,22 +2,18 @@
 
 /************************* NÃO TERMINAIS *************************/
 
-token_t parser::S(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: S" << std::endl;
+void parser::S(lexeme& l){
 	switch(l.get_tok() ){
 		case ALGORITMO:
             symbols.push(&parser::eof_tok);
             symbols.push(&parser::Programa);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Programa(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: Programa" << std::endl;
+void parser::Programa(lexeme& l){
 	switch(l.get_tok() ){
 		case ALGORITMO:
 			symbols.push(&parser::ponto);
@@ -29,14 +25,11 @@ token_t parser::Programa(lexeme& l){
 			symbols.push(&parser::algoritmo);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::ProcedimentoFuncao(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: ProcedimentoFuncao" << std::endl;
+void parser::ProcedimentoFuncao(lexeme& l){
 	switch(l.get_tok() ){
 		case PROCEDIMENTO:
 			symbols.push(&parser::ProcedimentoFuncao);
@@ -49,16 +42,14 @@ token_t parser::ProcedimentoFuncao(lexeme& l){
 		case INICIO:
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::DeclaraProcedimento(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: DeclaraProcedimento" << std::endl;
+void parser::DeclaraProcedimento(lexeme& l){
 	switch(l.get_tok() ){
 		case PROCEDIMENTO:
+			symbols.push(&parser::ponto_virg);
 			symbols.push(&parser::BlocoComandos);
 			symbols.push(&parser::BlocoVariaveis);
 			symbols.push(&parser::DeclaraParametros);
@@ -68,16 +59,14 @@ token_t parser::DeclaraProcedimento(lexeme& l){
 			symbols.push(&parser::procedimento);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::DeclaraFuncao(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: DeclaraFuncao" << std::endl;
+void parser::DeclaraFuncao(lexeme& l){
 	switch(l.get_tok() ){
 		case FUNCAO:
+			symbols.push(&parser::ponto_virg);
 			symbols.push(&parser::BlocoComandos);
 			symbols.push(&parser::BlocoVariaveis);
 			symbols.push(&parser::DeclaraParametros);
@@ -89,14 +78,11 @@ token_t parser::DeclaraFuncao(lexeme& l){
 			symbols.push(&parser::funcao);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Parametros(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: Parametros" << std::endl;
+void parser::Parametros(lexeme& l){
 	switch(l.get_tok() ){
 		case PONTO_VIRG:
 			break;
@@ -108,14 +94,11 @@ token_t parser::Parametros(lexeme& l){
 			symbols.push(&parser::abre_par);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::DeclaraParametros(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: DeclaraParametros" << std::endl;
+void parser::DeclaraParametros(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::Declaracoes);
@@ -140,14 +123,11 @@ token_t parser::DeclaraParametros(lexeme& l){
 		case INICIO:
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::BlocoVariaveis(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: BlocoVariaveis" << std::endl;
+void parser::BlocoVariaveis(lexeme& l){
 	switch(l.get_tok() ){
 		case PROCEDIMENTO:
 			break;
@@ -158,14 +138,11 @@ token_t parser::BlocoVariaveis(lexeme& l){
 		case INICIO:
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Declaracoes_prime(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: Declaracoes_prime" << std::endl;
+void parser::Declaracoes_prime(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::Declaracoes);
@@ -192,14 +169,11 @@ token_t parser::Declaracoes_prime(lexeme& l){
 		case INICIO:
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Declaracoes(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: Declaracoes" << std::endl;
+void parser::Declaracoes(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::Declaracoes_prime);
@@ -226,14 +200,11 @@ token_t parser::Declaracoes(lexeme& l){
 			symbols.push(&parser::DeclaraVariaveis);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::DeclaraTipo(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: DeclaraTipo" << std::endl;
+void parser::DeclaraTipo(lexeme& l){
 	switch(l.get_tok() ){
 		case TIPO:
 			symbols.push(&parser::ponto_virg);
@@ -247,14 +218,11 @@ token_t parser::DeclaraTipo(lexeme& l){
 			symbols.push(&parser::tipo);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::DeclaraVariaveis(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: DeclaraVariaveis" << std::endl;
+void parser::DeclaraVariaveis(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::ponto_virg);
@@ -287,14 +255,11 @@ token_t parser::DeclaraVariaveis(lexeme& l){
 			symbols.push(&parser::TipoBasico);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::DeclaraIdentificador_prime(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: DeclaraId_prime" << std::endl;
+void parser::DeclaraIdentificador_prime(lexeme& l){
 	switch(l.get_tok() ){
 		case PONTO_VIRG:
 			break;
@@ -305,41 +270,35 @@ token_t parser::DeclaraIdentificador_prime(lexeme& l){
 			symbols.push(&parser::virg);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::DeclaraIdentificador(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: DeclaraIdentificador" << std::endl;
+void parser::DeclaraIdentificador(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::DeclaraIdentificador_prime);
 			symbols.push(&parser::id);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::VetorMatriz(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: VetorMatriz" << std::endl;
+void parser::VetorMatriz(lexeme& l){
 	switch(l.get_tok() ){
 		case VETOR:
 			symbols.push(&parser::vetor);
-			symbols.push(&parser::matriz);
-		default:
-			error(l);
 			break;
+		case MATRIZ:
+			symbols.push(&parser::matriz);
+			break;
+		default:
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Dimensao_prime(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: Dimensao'" << std::endl;
+void parser::Dimensao_prime(lexeme& l){
 	switch(l.get_tok() ){
 		case FECHA_COL:
 			break;
@@ -348,14 +307,11 @@ token_t parser::Dimensao_prime(lexeme& l){
 			symbols.push(&parser::virg);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Dimensao(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: Dimensao" << std::endl;
+void parser::Dimensao(lexeme& l){
 	switch(l.get_tok() ){
 		case NUM_INTEIRO:
 			symbols.push(&parser::Dimensao_prime);
@@ -364,14 +320,11 @@ token_t parser::Dimensao(lexeme& l){
 			symbols.push(&parser::num_inteiro);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::TipoBasico(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: TipoBasico" << std::endl;
+void parser::TipoBasico(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::id);
@@ -389,14 +342,11 @@ token_t parser::TipoBasico(lexeme& l){
 			symbols.push(&parser::logico);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::BlocoComandos(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: BlocoComandos" << std::endl;
+void parser::BlocoComandos(lexeme& l){
 	switch(l.get_tok() ){
 		case INICIO:
 			symbols.push(&parser::fim);
@@ -404,14 +354,11 @@ token_t parser::BlocoComandos(lexeme& l){
 			symbols.push(&parser::inicio);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::ListaComandos_prime(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: ListaComandos_prime" << std::endl;
+void parser::ListaComandos_prime(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::ListaComandos);
@@ -441,14 +388,11 @@ token_t parser::ListaComandos_prime(lexeme& l){
 			symbols.push(&parser::ListaComandos);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::ListaComandos(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: ListaComandos" << std::endl;
+void parser::ListaComandos(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::ListaComandos_prime);
@@ -486,34 +430,29 @@ token_t parser::ListaComandos(lexeme& l){
 			symbols.push(&parser::Comandos);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Comandos_prime(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: COmandos_prime" << std::endl;
+void parser::Comandos_prime(lexeme& l){
 	switch(l.get_tok() ){
 		case PONTO_VIRG:
 			break;
 		case ABRE_PAR:
-			symbols.push(&parser::abre_par);
-			symbols.push(&parser::ExprIter);
 			symbols.push(&parser::fecha_par);
+			symbols.push(&parser::ExprIter);
+			symbols.push(&parser::abre_par);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::ComandosAux(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: COmandosAux" << std::endl;
+void parser::ComandosAux(lexeme& l){
 	switch(l.get_tok() ){
 		case PONTO_VIRG:
 			symbols.push(&parser::Comandos_prime);
+			break;
 		case ABRE_PAR:
 			symbols.push(&parser::Comandos_prime);
 			break;
@@ -521,20 +460,18 @@ token_t parser::ComandosAux(lexeme& l){
 			symbols.push(&parser::Expressao);
 			symbols.push(&parser::atribuicao);
 			symbols.push(&parser::Variavel_prime);
+			break;
 		case ATRIBUICAO:
 			symbols.push(&parser::Expressao);
 			symbols.push(&parser::atribuicao);
 			symbols.push(&parser::Variavel_prime);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Comandos(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: COmandos" << std::endl;
+void parser::Comandos(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::ComandosAux);
@@ -583,14 +520,11 @@ token_t parser::Comandos(lexeme& l){
 			symbols.push(&parser::imprima);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::ComandosFimSeSenao(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: COmandosFimSeSenao" << std::endl;
+void parser::ComandosFimSeSenao(lexeme& l){
 	switch(l.get_tok() ){
 		case FIM:
 			symbols.push(&parser::se);
@@ -603,14 +537,11 @@ token_t parser::ComandosFimSeSenao(lexeme& l){
 			symbols.push(&parser::senao);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::ComandosParaPasso(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: COmandosParaPasso" << std::endl;
+void parser::ComandosParaPasso(lexeme& l){
 	switch(l.get_tok() ){
 		case FACA:
 			symbols.push(&parser::para);
@@ -627,14 +558,11 @@ token_t parser::ComandosParaPasso(lexeme& l){
 			symbols.push(&parser::passo);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Expressao(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: Expressao" << std::endl;
+void parser::Expressao(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::Expressao_prime);
@@ -677,14 +605,11 @@ token_t parser::Expressao(lexeme& l){
 			symbols.push(&parser::ExpressaoSimples);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Expressao_prime(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: Expressao_prime" << std::endl;
+void parser::Expressao_prime(lexeme& l){
 	switch(l.get_tok() ){
 		case PONTO_VIRG:
 			break;
@@ -733,14 +658,11 @@ token_t parser::Expressao_prime(lexeme& l){
 			symbols.push(&parser::maior);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::ExpressaoSimples(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: ExpressaoSimples" << std::endl;
+void parser::ExpressaoSimples(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::ExpressaoSimples_prime);
@@ -785,14 +707,11 @@ token_t parser::ExpressaoSimples(lexeme& l){
 			symbols.push(&parser::Termo);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::ExpressaoSimples_prime(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: ExpressaoSimples_prime" << std::endl;
+void parser::ExpressaoSimples_prime(lexeme& l){
 	switch(l.get_tok() ){
 		case PONTO_VIRG:
 			break;
@@ -838,14 +757,11 @@ token_t parser::ExpressaoSimples_prime(lexeme& l){
 			symbols.push(&parser::ou);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Termo(lexeme& l){
-////std::cout << l.get_content() << " Símbolo: Termo" << std::endl;
+void parser::Termo(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::Termo_prime);
@@ -880,14 +796,11 @@ token_t parser::Termo(lexeme& l){
 			symbols.push(&parser::Fator);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Termo_prime(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: Termo_prime" << std::endl;
+void parser::Termo_prime(lexeme& l){
 	switch(l.get_tok() ){
 		case PONTO_VIRG:
 			break;
@@ -944,14 +857,11 @@ token_t parser::Termo_prime(lexeme& l){
 			symbols.push(&parser::e);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Fator(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: Fator" << std::endl;
+void parser::Fator(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::FatorAux);
@@ -961,12 +871,14 @@ token_t parser::Fator(lexeme& l){
 			symbols.push(&parser::fecha_par);
 			symbols.push(&parser::Expressao);
 			symbols.push(&parser::abre_par);
+			break;
 		case NUM_INTEIRO:
 			symbols.push(&parser::num_inteiro);
 			break;
 		case NAO:
 			symbols.push(&parser::Fator);
 			symbols.push(&parser::nao);
+			break;
 		case NUM_REAL:
 			symbols.push(&parser::num_real);
 			break;
@@ -980,14 +892,11 @@ token_t parser::Fator(lexeme& l){
 			symbols.push(&parser::string);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::FatorAux(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: FatorAux" << std::endl;
+void parser::FatorAux(lexeme& l){
 	switch(l.get_tok() ){
 		case PONTO_VIRG:
 			symbols.push(&parser::Variavel_prime);
@@ -1024,6 +933,21 @@ token_t parser::FatorAux(lexeme& l){
 		case ATE:
 			symbols.push(&parser::Variavel_prime);
 			break;
+		case DIFERENTE:
+			symbols.push(&parser::Variavel_prime);
+			break;
+		case MENOR:
+			symbols.push(&parser::Variavel_prime);
+			break;
+		case MAIOR:
+			symbols.push(&parser::Variavel_prime);
+			break;
+		case MENOR_IGUAL:
+			symbols.push(&parser::Variavel_prime);
+			break;
+		case MAIOR_IGUAL:
+			symbols.push(&parser::Variavel_prime);
+			break;
 		case MAIS:
 			symbols.push(&parser::Variavel_prime);
 			break;
@@ -1045,12 +969,12 @@ token_t parser::FatorAux(lexeme& l){
 		case E:
 			symbols.push(&parser::Variavel_prime);
 			break;
+		default:
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Variavel_prime(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: Variavel_prime" << std::endl;
+void parser::Variavel_prime(lexeme& l){
 	switch(l.get_tok() ){
 		case PONTO_VIRG:
 			break;
@@ -1062,6 +986,7 @@ token_t parser::Variavel_prime(lexeme& l){
 			symbols.push(&parser::fecha_col);
 			symbols.push(&parser::ExprIter);
 			symbols.push(&parser::abre_col);
+			break;
 		case FECHA_COL:
 			break;
 		case VIRG:
@@ -1076,6 +1001,16 @@ token_t parser::Variavel_prime(lexeme& l){
 			break;
 		case ATE:
 			break;
+		case DIFERENTE:
+			break;
+		case MENOR:
+			break;
+		case MAIOR:
+			break;
+		case MENOR_IGUAL:
+			break;
+		case MAIOR_IGUAL:
+			break;
 		case MAIS:
 			break;
 		case SUB:
@@ -1091,28 +1026,22 @@ token_t parser::Variavel_prime(lexeme& l){
 		case E:
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::Variavel(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: Variavel" << std::endl;
+void parser::Variavel(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::Variavel_prime);
 			symbols.push(&parser::id);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::ExprIter_prime(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: ExprIter_prime" << std::endl;
+void parser::ExprIter_prime(lexeme& l){
 	switch(l.get_tok() ){
 		case FECHA_PAR:
 			break;
@@ -1123,14 +1052,11 @@ token_t parser::ExprIter_prime(lexeme& l){
 			symbols.push(&parser::virg);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
-token_t parser::ExprIter(lexeme& l){
-//std::cout << l.get_content() << " Símbolo: ExprIter" << std::endl;
+void parser::ExprIter(lexeme& l){
 	switch(l.get_tok() ){
 		case ID:
 			symbols.push(&parser::ExprIter_prime);
@@ -1193,68 +1119,472 @@ token_t parser::ExprIter(lexeme& l){
 			symbols.push(&parser::Expressao);
 			break;
 		default:
-			error(l);
-			break;
+			error(l);break;
 	}
-	return NULO;
 }
 
 /*************************** TERMINAIS ***************************/
-token_t parser::id(lexeme& l) { return ID; }
-token_t parser::num_inteiro(lexeme& l) { return NUM_INTEIRO; }
-token_t parser::num_real(lexeme& l) { return NUM_REAL; }
-token_t parser::ponto(lexeme& l) { return PONTO; }
-token_t parser::e(lexeme& l) { return E;}
-token_t parser::ate(lexeme& l) { return ATE; }
-token_t parser::ou(lexeme& l) { return OU;}
-token_t parser::algoritmo(lexeme& l) { return ALGORITMO; }
-token_t parser::para(lexeme& l) { return PARA; }
-token_t parser::passo(lexeme& l) { return PASSO; }
-token_t parser::procedimento(lexeme& l) { return PROCEDIMENTO; }
-token_t parser::caractere(lexeme& l) { return CARACTERE; }
-token_t parser::real(lexeme& l) { return REAL; }
-token_t parser::repita(lexeme& l) { return REPITA; }
-token_t parser::de(lexeme& l) { return DE;}
-token_t parser::div(lexeme& l) { return DIV; }
-token_t parser::barra(lexeme& l) { return BARRA; }
-token_t parser::se(lexeme& l) { return SE;}
-token_t parser::senao(lexeme& l) { return SENAO; }
-token_t parser::variaveis(lexeme& l) { return VARIAVEIS; }
-token_t parser::verdadeiro(lexeme& l) { return VERDADEIRO; }
-token_t parser::tipo(lexeme& l) { return TIPO; }
-token_t parser::nao(lexeme& l) { return NAO; }
-token_t parser::matriz(lexeme& l) { return MATRIZ; }
-token_t parser::falso(lexeme& l) { return FALSO; }
-token_t parser::faca(lexeme& l) { return FACA; }
-token_t parser::fim(lexeme& l) { return FIM; }
-token_t parser::funcao(lexeme& l) { return FUNCAO; }
-token_t parser::entao(lexeme& l) { return ENTAO; }
-token_t parser::enquanto(lexeme& l) { return ENQUANTO; }
-token_t parser::leia(lexeme& l) { return LEIA; }
-token_t parser::logico(lexeme& l) { return LOGICO; }
-token_t parser::imprima(lexeme& l) { return IMPRIMA; }
-token_t parser::inteiro(lexeme& l) { return INTEIRO; }
-token_t parser::maior(lexeme& l) { return MAIOR; }
-token_t parser::menor(lexeme& l) { return MENOR; }
-token_t parser::mais(lexeme& l) { return MAIS; }
-token_t parser::sub(lexeme& l) { return SUB; }
-token_t parser::mul(lexeme& l) { return MUL; }
-token_t parser::maior_igual(lexeme& l) { return MAIOR_IGUAL; }
-token_t parser::menor_igual(lexeme& l) { return MENOR_IGUAL; }
-token_t parser::string(lexeme& l) { return STRING; }
-token_t parser::block_comment(lexeme& l) { return BLOCK_COMMENT; }
-token_t parser::line_comment(lexeme& l) { return LINE_COMMENT; }
-token_t parser::whitespace(lexeme& l) { return WHITESPACE; }
-token_t parser::diferente(lexeme& l) { return DIFERENTE; }
-token_t parser::atribuicao(lexeme& l) { return ATRIBUICAO; }
-token_t parser::igual(lexeme& l) { return IGUAL; }
-token_t parser::ponto_virg(lexeme& l) { return PONTO_VIRG; }
-token_t parser::dois_pontos(lexeme& l) { return DOIS_PONTOS; }
-token_t parser::inicio(lexeme& l) { return INICIO; }
-token_t parser::virg(lexeme& l) { return VIRG; }
-token_t parser::abre_col(lexeme& l) { return ABRE_COL; }
-token_t parser::fecha_col(lexeme& l) { return FECHA_COL; }
-token_t parser::abre_par(lexeme& l) { return ABRE_PAR; }
-token_t parser::fecha_par(lexeme& l) { return FECHA_PAR; }
-token_t parser::vetor(lexeme& l) { return VETOR; }
-token_t parser::eof_tok(lexeme& l) { return EOF_TOK; }
+void parser::id(lexeme& l){
+	switch(l.get_tok() ){
+		case ID:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::num_inteiro(lexeme& l){
+	switch(l.get_tok() ){
+		case NUM_INTEIRO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::num_real(lexeme& l){
+	switch(l.get_tok() ){
+		case NUM_REAL:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::ponto(lexeme& l){
+	switch(l.get_tok() ){
+		case PONTO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::e(lexeme& l){
+	switch(l.get_tok() ){
+		case E:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::ate(lexeme& l){
+	switch(l.get_tok() ){
+		case ATE:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::ou(lexeme& l){
+	switch(l.get_tok() ){
+		case OU:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::algoritmo(lexeme& l){
+	switch(l.get_tok() ){
+		case ALGORITMO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::para(lexeme& l){
+	switch(l.get_tok() ){
+		case PARA:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::passo(lexeme& l){
+	switch(l.get_tok() ){
+		case PASSO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::procedimento(lexeme& l){
+	switch(l.get_tok() ){
+		case PROCEDIMENTO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::caractere(lexeme& l){
+	switch(l.get_tok() ){
+		case CARACTERE:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::real(lexeme& l){
+	switch(l.get_tok() ){
+		case REAL:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::repita(lexeme& l){
+	switch(l.get_tok() ){
+		case REPITA:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::de(lexeme& l){
+	switch(l.get_tok() ){
+		case DE:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::div(lexeme& l){
+	switch(l.get_tok() ){
+		case DIV:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::barra(lexeme& l){
+	switch(l.get_tok() ){
+		case BARRA:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::se(lexeme& l){
+	switch(l.get_tok() ){
+		case SE:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::senao(lexeme& l){
+	switch(l.get_tok() ){
+		case SENAO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::variaveis(lexeme& l){
+	switch(l.get_tok() ){
+		case VARIAVEIS:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::verdadeiro(lexeme& l){
+	switch(l.get_tok() ){
+		case VERDADEIRO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::tipo(lexeme& l){
+	switch(l.get_tok() ){
+		case TIPO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::nao(lexeme& l){
+	switch(l.get_tok() ){
+		case NAO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::matriz(lexeme& l){
+	switch(l.get_tok() ){
+		case MATRIZ:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::falso(lexeme& l){
+	switch(l.get_tok() ){
+		case FALSO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::faca(lexeme& l){
+	switch(l.get_tok() ){
+		case FACA:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::fim(lexeme& l){
+	switch(l.get_tok() ){
+		case FIM:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::funcao(lexeme& l){
+	switch(l.get_tok() ){
+		case FUNCAO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::entao(lexeme& l){
+	switch(l.get_tok() ){
+		case ENTAO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::enquanto(lexeme& l){
+	switch(l.get_tok() ){
+		case ENQUANTO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::leia(lexeme& l){
+	switch(l.get_tok() ){
+		case LEIA:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::logico(lexeme& l){
+	switch(l.get_tok() ){
+		case LOGICO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::imprima(lexeme& l){
+	switch(l.get_tok() ){
+		case IMPRIMA:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::inteiro(lexeme& l){
+	switch(l.get_tok() ){
+		case INTEIRO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::maior(lexeme& l){
+	switch(l.get_tok() ){
+		case MAIOR:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::menor(lexeme& l){
+	switch(l.get_tok() ){
+		case MENOR:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::mais(lexeme& l){
+	switch(l.get_tok() ){
+		case MAIS:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::sub(lexeme& l){
+	switch(l.get_tok() ){
+		case SUB:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::mul(lexeme& l){
+	switch(l.get_tok() ){
+		case MUL:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::maior_igual(lexeme& l){
+	switch(l.get_tok() ){
+		case MAIOR_IGUAL:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::menor_igual(lexeme& l){
+	switch(l.get_tok() ){
+		case MENOR_IGUAL:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::string(lexeme& l){
+	switch(l.get_tok() ){
+		case STRING:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::block_comment(lexeme& l){
+	switch(l.get_tok() ){
+		case BLOCK_COMMENT:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::line_comment(lexeme& l){
+	switch(l.get_tok() ){
+		case LINE_COMMENT:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::whitespace(lexeme& l){
+	switch(l.get_tok() ){
+		case WHITESPACE:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::diferente(lexeme& l){
+	switch(l.get_tok() ){
+		case DIFERENTE:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::atribuicao(lexeme& l){
+	switch(l.get_tok() ){
+		case ATRIBUICAO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::igual(lexeme& l){
+	switch(l.get_tok() ){
+		case IGUAL:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::ponto_virg(lexeme& l){
+	switch(l.get_tok() ){
+		case PONTO_VIRG:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::dois_pontos(lexeme& l){
+	switch(l.get_tok() ){
+		case DOIS_PONTOS:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::inicio(lexeme& l){
+	switch(l.get_tok() ){
+		case INICIO:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::virg(lexeme& l){
+	switch(l.get_tok() ){
+		case VIRG:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::abre_col(lexeme& l){
+	switch(l.get_tok() ){
+		case ABRE_COL:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::fecha_col(lexeme& l){
+	switch(l.get_tok() ){
+		case FECHA_COL:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::abre_par(lexeme& l){
+	switch(l.get_tok() ){
+		case ABRE_PAR:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::fecha_par(lexeme& l){
+	switch(l.get_tok() ){
+		case FECHA_PAR:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::vetor(lexeme& l){
+	switch(l.get_tok() ){
+		case VETOR:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
+void parser::eof_tok(lexeme& l){
+	switch(l.get_tok() ){
+		case EOF_TOK:
+			++cursor;break;
+		default:
+			error(l);break;
+	}
+}
