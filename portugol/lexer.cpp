@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 
 #include "lexer.hpp"
 
@@ -103,6 +104,7 @@ void lexer::reset_state(std::istream& src, size_t& line,
 inline void lexer::error(char err_ch){
     std::cout << "ERRO LEXICO. Linha: " << line <<" Coluna: " << 
         column << " -> \'" << err_ch << "\'";
+    std::exit(1);
 }
 
 void lexer::show_transition_table(){

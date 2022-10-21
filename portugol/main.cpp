@@ -17,7 +17,7 @@ int main(){
     //     tokens[i].print();
     // }
 
-    sintatico.parse(tokens);
+    sintatico.start_parsing(tokens);
 
     return 0;
 }

@@ -5,13 +5,14 @@
 #include <stack>
 #include <vector>
 #include <functional>
+#include <cstdlib>
 
 #include "lexeme.hpp"
 
 class parser{
     public:
         parser(){};
-        void parse(std::vector<lexeme> token_stream);
+        void start_parsing(std::vector<lexeme> token_stream);
 
     private:
 		inline void error(lexeme& l){

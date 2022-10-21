@@ -10,7 +10,7 @@
 //     exit(1);
 // }
 
-void parser::parse(std::vector<lexeme> token_stream){
+void parser::start_parsing(std::vector<lexeme> token_stream){
     cursor = token_stream.begin();
     symbols.push(&parser::S);
 
