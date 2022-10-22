@@ -16,7 +16,6 @@ CC = g++
 #	Flags
 CC_FLAGS = -fstack-protector-all	\
 		   -fstack-check			\
-		   -g						\
 		   -std=c++11
 
 #	Compilação e linkagem

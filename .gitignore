@@ -1,1 +1,9 @@
 **/.vscode/
+**/*.txt
+**/*.yy.*
+**/*.out
+**/*.tab.*
+**/*.xml
+**/*.py
+**/*.zip
+mamola*
