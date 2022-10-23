@@ -2,7 +2,7 @@
 
 #include "lexeme.hpp"
 
-static const char* token_names[58]{	
+static const char* token_names[59]{	
 	"NULO",
 	"ID",
 	"NUM_INTEIRO",
@@ -60,6 +60,7 @@ static const char* token_names[58]{
 	"FECHA_COL",
 	"ABRE_PAR",
 	"FECHA_PAR",
+	"VETOR",
 	"FIM_DE_ARQUIVO"
 };
 

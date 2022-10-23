@@ -13,6 +13,8 @@ lexer::lexer(transition_t (&matrix)[STATES][ALPHABET_SIZE],
     }
     current = INITIAL_STATE;
     last_final = ERROR_STATE;
+    line = 1;
+    column = 1;
 }
 
 void lexer::start_lexing(std::istream& src){
@@ -70,10 +72,75 @@ inline transition_t lexer::consume(int ch){
     current = transitions[current][ch];
     // std::cout << "->" << (int) current << std::endl; // debug jajajajajaj
 
-    if(states[current].is_final == true)
+    if(states[current].is_final == true){
         last_final = current;
-
+        // std::cout << "last_final = " << (int) last_final << std::endl; // debug jajajajajaj
+    }
     return current;
+}
+
+lexeme& lexer::tokenize(std::istream& src, lexeme& l){
+    std::string text;
+    token_t tok;
+    size_t line = this->line,
+           column = this->column;
+    char ch,
+         read_ch;
+
+    std::queue<char> debug = buf;
+
+    // while(!debug.empty()){
+    //     std::cout << (int) debug.front() << std::endl;
+    //     debug.pop();
+    // }
+
+    do{
+        ch = src.get();
+        // std::cout << "ch = " << (int) ch << std::endl; // debug jajajajajaj
+        buf.push(ch);
+        if(consume(ch)){
+            while(states[current].is_final && !buf.empty()){
+                read_ch = buf.front();
+                switch(read_ch){
+                    case '\n':
+                        line++;
+                        column = 1;
+                        break;
+                    case '\t':
+                        column += 4;
+                        break;
+                    default:
+                        column++;
+                }
+                text.push_back(read_ch);
+                buf.pop();
+            }
+        }
+        else{
+            switch(states[last_final].tok){
+                case NULO:
+                    if(ch == EOF)
+                        return (l = lexeme(EOF_TOK, line, column));
+                    else
+                        error(ch);
+                case WHITESPACE:
+                case LINE_COMMENT:
+                case BLOCK_COMMENT:
+                    reset_state(src, line, column);
+                    text.clear();
+                    if(ch == EOF)
+                        ch = 0;
+                    break;
+                default:
+                    l = lexeme(text, states[last_final].tok, 
+                        this->line, this->column);
+                    reset_state(src, line, column);
+                    return l;
+            }
+        }
+    }while(ch != EOF);
+
+    return l;
 }
 
 void lexer::get_tokens(std::vector<lexeme>& tokens){

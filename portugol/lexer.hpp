@@ -15,6 +15,7 @@ class lexer{
     public:
         lexer(transition_t (&matrix)[STATES][ALPHABET_SIZE], 
             state_t (&state_list)[STATES]);
+        lexeme& tokenize(std::istream& src, lexeme& l);
         void start_lexing(std::istream& src);
         void get_tokens(std::vector<lexeme>& tokens);
         void show_transition_table();

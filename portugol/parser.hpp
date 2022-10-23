@@ -11,7 +11,9 @@
 
 class parser{
     public:
-        parser(){};
+        parser(){ symbols.push(&parser::S); };
+		inline bool done_parsing() { return symbols.empty(); };
+		void parse(lexeme& l);
         void start_parsing(std::vector<lexeme> token_stream);
 
     private:
@@ -22,11 +24,10 @@ class parser{
 
 			exit(1);
 		};
-        std::stack<void (parser::*)(lexeme&)> symbols;
-		// std::stack<std::string> debug;
+        std::stack<token_t (parser::*)(lexeme&)> symbols;
         std::vector<lexeme>::iterator cursor;
 		
-		void S(lexeme& l),
+		token_t S(lexeme& l),
                 Programa(lexeme& l),
                 ProcedimentoFuncao(lexeme& l),
                 DeclaraProcedimento(lexeme& l),

@@ -5,19 +5,15 @@
 #include "automaton.hpp"
 
 int main(){
-    std::vector<lexeme> tokens;
+    lexeme teste;
     lexer lexico = lexer(transitions, states);
     parser sintatico = parser();
 
-    lexico.start_lexing(std::cin);
-    lexico.get_tokens(tokens);
-    
-    // imprima vetor tokens
-    // for(int i = 0; i < tokens.size(); i++){
-    //     tokens[i].print();
-    // }
+    while(!sintatico.done_parsing()){
+        sintatico.parse(lexico.tokenize(std::cin, teste));
+    }
 
-    sintatico.start_parsing(tokens);
+    std::cout << "PROGRAMA CORRETO.";
 
     return 0;
 }
