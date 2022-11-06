@@ -1,29 +1,27 @@
 #	Projeto
-PROJ = l6e1
+PROJ = l10e4
 
 #	.c
-C_SOURCE = $(wildcard *.cpp)
+SOURCES = $(wildcard *.cpp)
 
 #	.h
-H_SOURCE = $(wildcard *.hpp)
+HEADERS = $(wildcard *.hpp)
 
 #	.o
-OBJ = $(C_SOURCE:.cpp = .o)
+OBJECTS = $(patsubst %.cpp, %.o, $(SOURCES))
 
 #	Compilador
 CC = g++
 
 #	Flags
 CC_FLAGS = -fstack-protector-all	\
-		   -g						\
-		   -fstack-check
+		   -fstack-check			\
+		   -std=c++11
 
-#	Compilação e linkagem
-$(PROJ): $(OBJ)
-	$(CC) -o $@ $^
-	
+#	Linkagem dos arquivos .o
+$(PROJ): $(OBJECTS)
+	$(CC) $^ -o $@
+
+# Compilação de cada arquivo .c em .o
 %.o: %.cpp %.hpp
-	$(CC) -o $@ $< $(CC_FLAGS)
-	
-main.o: *.cpp *.hpp $(H_SOURCE)
-	$(CC) -o $@ $< $(CC_FLAGS)
+	$(CC) -c $< -o $@ $(CC_FLAGS)

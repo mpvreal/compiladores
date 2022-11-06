@@ -1,38 +1,45 @@
-#ifndef LEXER_HPP
-#define LEXER_HPP
+#ifndef PARSER_HPP
+#define PARSER_HPP
 
-#include <list>
-#include <string>
+#include <iostream>
+#include <stack>
+#include <vector>
+#include <functional>
+#include <cstdlib>
 
-typedef enum tokens{
-    ERROR, IF, THEN, ELSE, BEGIN, END, PRINT, SEMI, NUM, EQ, NL
-} token;
-typedef std::list<token> token_string;
-
-const std::string lexemes[] = 
-    {"", "if", "then", "else", "begin", "end", "print", ";", "num",
-     "=", "quebra de linha"};
+#include "lexeme.hpp"
 
 class parser{
-  public:
-    parser(std::string input);
-    ~parser();
-    int parse();
-    void show_tokens();
+    public:
+        parser(){ symbols.push(&parser::S); };
+		inline bool done_parsing() { return symbols.empty(); };
+		void parse(lexeme& l);
+        void start_parsing(std::vector<lexeme> token_stream);
 
-  private:
-    std::list<token_string> input;
-    token tok;
+    private:
+		inline void error(lexeme& l, const char* expected){
+			std::cout << "ERRO SINTATICO EM: " << l.get_line() 
+				<< " ESPERADO: " << expected;
 
-    inline token getToken();
-    inline void advance();
-    inline void error(const std::string t);
-    inline void error_unterminated_str();
-    inline void eat(token t);
-    inline void E();
-    void S();
-    void L();
-    void seek_nl();
+			exit(1);
+		};
+        std::stack<token_t (parser::*)(lexeme&)> symbols;
+		// std::stack<std::string> debug;
+        std::vector<lexeme>::iterator cursor;
+		
+		token_t S(lexeme& l),
+				E(lexeme& l),
+				T(lexeme& l),
+				F(lexeme& l),
+				E_prime(lexeme& l),
+				T_prime(lexeme& l),
+				id(lexeme& l),
+				add(lexeme& l),
+				mul(lexeme& l),
+				l_paren(lexeme& l),
+				r_paren(lexeme& l),
+				whitespace(lexeme& l),
+				eof_tok(lexeme& l);
 };
 
-#endif
+#endif  

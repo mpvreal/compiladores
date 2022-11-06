@@ -1,27 +1,20 @@
-/* ALUNO:   MATHEUS PIRES VILA REAL
- * Nº:      202000560352
- */
 #include <iostream>
 
+#include "lexer.hpp"
 #include "parser.hpp"
+#include "automaton.hpp"
 
-int main(int argc, char* argv[]){
+int main(){
+    lexeme teste;
+    lexer lex = lexer(transitions, states);
+    parser sintatico = parser();
 
-    std::string input = "";
-    char ch;
-
-    while((ch = getc(stdin))){
-        
-        input.append(1, ch);
-
-        if(ch == EOF)
-            break;
+    while(!sintatico.done_parsing()){
+        lex.tokenize(std::cin, teste);
+        sintatico.parse(teste);
     }
 
-    parser sintatico(input);
-
-    sintatico.parse();
-    // sintatico.show_tokens();
+    std::cout << "CADEIA ACEITA";
 
     return 0;
 }

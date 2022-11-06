@@ -42,7 +42,7 @@ static void comment();
 "else"      { col += strlen(yytext); strncat(error_line, yytext, strlen(yytext)); return ELSE; }
 "typedef"   { col += strlen(yytext); strncat(error_line, yytext, strlen(yytext)); return TYPEDEF; }
 "struct"    { col += strlen(yytext); strncat(error_line, yytext, strlen(yytext)); return STRUCT; }
-"/*"        { col += 2; comment(line, col - 2); }
+"/*"        { col += 2; strncat(error_line, yytext, strlen(yytext)); comment(line, col - 2); }
 "//"[^\n]*  { strncat(error_line, yytext, strlen(yytext)); }
 "++"        { col += strlen(yytext); strncat(error_line, yytext, strlen(yytext)); return INC; }
 "+"         { col += strlen(yytext); strncat(error_line, yytext, strlen(yytext)); return PLUS; }
@@ -106,8 +106,8 @@ static void comment();
 '([^'\\\n]|\\.)'    { col += strlen(yytext); strncat(error_line, yytext, strlen(yytext)); return CHARACTER; }
 \n+                 { prev_line_num = line; prev_col = col;
                       line += strlen(yytext); col = 1;
-                      strncpy(prev_line, error_line, strlen(error_line));
-                      strncpy(error_line, "", 1); 
+                      strcpy(prev_line, error_line);
+                      strcpy(error_line, ""); 
                     }
 [ \t]               { col += strlen(yytext); strncat(error_line, yytext, strlen(yytext)); }
 [\r\v\f\b\a\0]+     /* white space */
@@ -134,13 +134,14 @@ static void comment(int start_line, int start_col){
         prev = '*';
     
     while( (ch = input()) > 0){
-        
+        strncat(error_line, &ch, 1);
         col++;
         switch(ch){
 
             case '*':
                 if( (ch = input()) == '/'){
                     col += 1;
+                    strncat(error_line, &ch, 1);
                     return;
                 }
                 unput(ch);
@@ -158,6 +159,9 @@ static void comment(int start_line, int start_col){
             case '\n':
                 line++;
                 col = 1;
+                prev_line_num = line; prev_col = col;
+                strcpy(prev_line, error_line);
+                strcpy(error_line, "");
                 break;
 
             default:
@@ -169,5 +173,6 @@ static void comment(int start_line, int start_col){
     ++count;
 
     printf("error:lexical:%d:%d: unterminated comment", 
-        start_line, start_col); 
+        start_line, start_col);
+    exit(EXIT_FAILURE);
 }

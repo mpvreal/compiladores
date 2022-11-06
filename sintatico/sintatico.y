@@ -386,10 +386,10 @@ void yyerror(char *s) {
         printf("error:syntax:%ld:%ld: %s\n", line, col, yytext);
         get_remaining_line();
     }
-        puts(error_line_ptr);
-        while(--col)
-            putchar(' ');
-        putchar('^');
+    puts(error_line_ptr);
+    while(--col)
+        putchar(' ');
+    putchar('^');
 }
 
 int main(int argc, char *argv[]){
