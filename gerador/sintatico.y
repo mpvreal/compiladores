@@ -1,17 +1,23 @@
 %{
 
 #include <list>
-#include <stack>
+#include <map>
 #include <string>
 
 #include "ast.hh"
     
+typedef std::map<std::string, void*> scope;
+
 extern int yylex();
 extern int yyparse();
 extern void yyerror(char*);
 
 std::list<void*> buffer_list;
-std::stack<std::list<void*>> buffer_stack;
+std::list<std::list<void*>> buffer_stack;
+
+struct context {
+    std::list<scope> ctx_stack;
+};
 
 %}
 
@@ -40,7 +46,7 @@ std::stack<std::list<void*>> buffer_stack;
     FunctionDeclaration Atomic Expression 
     Arguments DeferenceLoop AmbiguousOperation Pointer 
     PrimitiveType TypeDeclaration If While DoWhile For Variadic Printf Scanf 
-    Control Statement ParameterList VariableList
+    Statement ParameterList VariableList
 
 %type<ast_node_type> BOP UOP Postfix
 
@@ -64,12 +70,13 @@ ConstantDeclaration
     ;
 
 GlobalVarDeclaration
-    : GLOBAL_VAR COLON ID TYPE COLON TypeDeclaration 
+    : GLOBAL_VAR COLON ID TYPE COLON TypeDeclaration SEPARATOR
     ;
 
 FunctionDeclaration
-    : FUNCTION COLON ID SEPARATOR RETURN_TYPE COLON TypeDeclaration ParameterList 
-        VariableList Statement END_FUNCTION OptionalSeparator
+    : FUNCTION COLON ID SEPARATOR RETURN_TYPE COLON TypeDeclaration SEPARATOR 
+        ParameterList VariableList StatementList SEPARATOR 
+        END_FUNCTION OptionalSeparator
     ;
 
 Atomic
@@ -316,32 +323,37 @@ PrimitiveType
     ;
 
 TypeDeclaration
-    : PrimitiveType Pointer Array SEPARATOR
+    : PrimitiveType Pointer Array
     ;
 
-OptionalStatement
-    : COMMA Statement
+ThenBlock
+    : COMMA StatementList
     | %empty
     ;
 
 If
-    : IF L_PAREN Expression COMMA Statement OptionalStatement R_PAREN
+    : IF L_PAREN Expression COMMA StatementList ThenBlock R_PAREN
     ;
 
 While
-    : WHILE L_PAREN Expression COMMA Statement R_PAREN
+    : WHILE L_PAREN Expression COMMA StatementList R_PAREN
     ;
 
 DoWhile
-    : DO_WHILE L_PAREN Expression COMMA Statement R_PAREN
+    : DO_WHILE L_PAREN Expression COMMA StatementList R_PAREN
     ;
 
 For
-    : FOR L_PAREN Expression COMMA Expression COMMA Expression COMMA Statement R_PAREN
+    : FOR L_PAREN Expression COMMA Expression COMMA Expression COMMA StatementList R_PAREN
     ;
 
 Return
-    : RETURN L_PAREN Expression R_PAREN OptionalSeparator
+    : RETURN L_PAREN ReturnValue
+    ;
+
+ReturnValue
+    : Expression R_PAREN
+    | R_PAREN
     ;
 
 Variadic
@@ -357,24 +369,33 @@ Scanf
     : SCANF L_PAREN STRING Variadic R_PAREN
     ;
 
-Control
-    : If | While | DoWhile | For | Printf | Scanf
+StatementList
+    : StatementListContinuation Statement
     ;
 
-Statement
-    : Statement Control SEPARATOR 
-    | Statement Expression SEPARATOR
-    | Statement Return
+StatementListContinuation
+    : StatementList SEPARATOR
     | %empty
     ;
 
+Statement
+    : If 
+    | While 
+    | DoWhile 
+    | For 
+    | Printf 
+    | Scanf 
+    | Expression
+    | Return
+    ;
+
 ParameterList
-    : ParameterList PARAMETER COLON ID TYPE COLON TypeDeclaration 
+    : ParameterList PARAMETER COLON ID TYPE COLON TypeDeclaration SEPARATOR
     | %empty
     ;
 
 VariableList
-    : VariableList VAR COLON ID TYPE COLON TypeDeclaration 
+    : VariableList VAR COLON ID TYPE COLON TypeDeclaration SEPARATOR
     | %empty
     ;
 
