@@ -1,0 +1,12 @@
+CONSTANT: partido_dos_trabalhadores VALUE: 13
+GLOBAL VARIABLE: uma_string TYPE: char[14]
+
+FUNCTION: foo
+    RETURN_TYPE: int
+    PARAMETER: n TYPE: int
+    VARIABLE: a TYPE: int
+
+    WHILE(!=(n, 0), FOR(=(a, 0), <(a, n), (a)++, PRINTF("HAHAHAHAHAHA");););
+
+    RETURN(a)
+END_FUNCTION
