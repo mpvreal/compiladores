@@ -5,10 +5,9 @@
 
 namespace gerador {
     class ast {
-        std::list<ast_node> program;
+        ast_node program;
 
         public:
-        ast() {};
         ~ast() {};
     };
 }

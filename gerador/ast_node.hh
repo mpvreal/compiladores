@@ -5,7 +5,7 @@
 #include <string>
 
 namespace gerador {
-    typedef void* param;
+    typedef const void* param;
     
     enum var_type { VOID, CHAR, INT, CHAR_PTR, ARRAY_INT, ARRAY_CHAR_PTR };
     
@@ -189,13 +189,6 @@ namespace gerador {
         ~ast_decimal() {};
     };
 
-    struct ast_character { 
-        char ch; 
-
-        ast_character(char c) : ch(c) {};
-        ~ast_character() {};
-    };
-
     union ast_node_representation {
         ast_program _ast_program;
 
@@ -220,7 +213,6 @@ namespace gerador {
         /* _~ATÔMICOS~ */
         ast_text _ast_text;
         ast_decimal _ast_decimal;
-        ast_character _ast_character;
 
         ast_node_representation(const std::list<param>& commands) : _ast_program(commands) {};
         ast_node_representation(const std::string& s, gerador::var_type t, int v) : _ast_constant(s, t, v) {};
@@ -236,7 +228,6 @@ namespace gerador {
         ast_node_representation(param o) : _ast_unary(o) {};
         ast_node_representation(const std::string& s) : _ast_text(s) {};
         ast_node_representation(int v) : _ast_decimal(v) {};
-        ast_node_representation(char ch) : _ast_character(ch) {};
         ~ast_node_representation() {};
     };
 
@@ -290,10 +281,23 @@ namespace gerador {
         ast_node(gerador::ast_node_types node_type, int v) : rep(v) {
             label = node_type;
         };
-        ast_node(gerador::ast_node_types node_type, char ch) : rep(ch) {
-            label = node_type;
-        };
+
         ~ast_node() {};
+
+        ast_node& operator=(const ast_node& node) {
+            if(this == &node) return *this;
+            if(label != node.label) return *this;
+
+            switch(label) {
+                case ID:
+                    rep._ast_text.id = node.rep._ast_text.id;
+                    break;
+                default:
+                    break;
+            }
+
+            return *this;
+        };
     };
 }
 
