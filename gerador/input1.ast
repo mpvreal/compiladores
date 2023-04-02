@@ -1,8 +1,0 @@
-CONSTANT: SERA_VERDADE VALUE: 1
-
-FUNCTION: f
-    RETURN_TYPE: void**
-    VARIABLE: v TYPE: void**
-    
-    *(1, 2);
-END_FUNCTION

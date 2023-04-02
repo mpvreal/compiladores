@@ -5,10 +5,13 @@
 
 namespace gerador {
     class ast {
-        ast_node program;
+        ast_node* program;
 
         public:
+        ast() {};
         ~ast() {};
+
+        void set_program(ast_node* p);
     };
 }
 

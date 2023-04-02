@@ -6,6 +6,8 @@ extern int yylex();
 extern int yyparse();
 extern void yyerror(char*);
 
+gerador::ast program;
+
 std::list<const void*> args;
 void* to_access;
 %}
@@ -48,6 +50,7 @@ Program
         $$ = new gerador::ast_node(gerador::ast_node_types::PROGRAM, 
             *((std::list<const void*>*) $3));
         delete (std::list<const void*>*) $3;
+        program.set_program((gerador::ast_node*) $$);
     }
     ;
 
@@ -322,29 +325,14 @@ TypeDeclaration
     ;
 
 ElseBlock
-    : ElseMarker StatementList {
+    : COMMA StatementList {
         $$ = $2;
     }
     | %empty { $$ = new std::list<const void*>(); }
     ;
 
-ElseMarker
-    : COMMA { ctx++; }
-    ;
-
 If
-    : IfMarker L_PAREN Expression COMMA StatementList ElseBlock R_PAREN {
-        // if($6) {
-        //     std::list<const void*> buf = ctx.statements();
-        //     ctx--;
-        //     $$ = new gerador::ast_node(gerador::ast_node_types::IF, 
-        //         $3, ctx.statements(), buf);
-        // } else {
-        //     $$ = new gerador::ast_node(gerador::ast_node_types::IF, 
-        //         $3, ctx.statements(), std::list<const void*>());
-        // }
-
-        // ctx--;
+    : IF L_PAREN Expression COMMA StatementList ElseBlock R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::IF, $3, 
             *((std::list<const void*>*) $5), *((std::list<const void*>*) $6));
         delete (std::list<const void*>*) $5;
@@ -352,48 +340,24 @@ If
     }
     ;
 
-IfMarker
-    : IF {
-        ctx++;
-    }
-    ;
-
 While
-    : WhileMarker L_PAREN Expression COMMA StatementList R_PAREN {
+    : WHILE L_PAREN Expression COMMA StatementList R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::WHILE, $3,
             *((std::list<const void*>*) $5));
     }
     ;
 
-WhileMarker
-    : WHILE {
-        ctx++;
-    }
-    ;
-
 DoWhile
-    : DoWhileMarker L_PAREN Expression COMMA StatementList R_PAREN {
+    : DO_WHILE L_PAREN Expression COMMA StatementList R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::DO_WHILE, $3,
             *((std::list<const void*>*) $5));
     }
     ;
 
-DoWhileMarker
-    : DO_WHILE {
-        ctx++;
-    }
-    ;
-
 For
-    : ForMarker L_PAREN Expression COMMA Expression COMMA Expression COMMA StatementList R_PAREN {
+    : FOR L_PAREN Expression COMMA Expression COMMA Expression COMMA StatementList R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::FOR, $3, $5, $7,
             *((std::list<const void*>*) $9));
-    }
-    ;
-
-ForMarker
-    : FOR {
-        ctx++;
     }
     ;
 
