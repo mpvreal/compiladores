@@ -1,9 +1,4 @@
 %{
-
-#include <list>
-#include <map>
-#include <string>
-
 #include "ast.hh"
 #include "context.hh"
 
@@ -11,20 +6,16 @@ extern int yylex();
 extern int yyparse();
 extern void yyerror(char*);
 
-gerador::context ctx;
-
 std::list<const void*> args;
-
 void* to_access;
-
 %}
 
 %union {
-    int decimal;
     const char* string;
-    char character;
     void* ast_node;
-    int ast_node_type;
+    int number;
+    int enum_type;
+    char character;
     bool boolean;
 }
 
@@ -35,163 +26,150 @@ void* to_access;
     LESS_THAN GREATER_THAN LESS_EQUAL GREATER_EQUAL R_SHIFT L_SHIFT 
     ASSIGN ADD_ASSIGN MINUS_ASSIGN INC DEC BITWISE_NOT NOT TERNARY 
     L_PAREN R_PAREN L_BRACKET R_BRACKET COLON SEPARATOR COMMA AST
-    
 %token<string> ID 
-%token<decimal> DECIMAL 
 %token<string> STRING 
+%token<number> NUMBER 
 %token<character> CHARACTER
 
 %type<ast_node> Program Declarations ConstantDeclaration GlobalVarDeclaration 
-    FunctionDeclaration Literal Expression ReturnValue
-    Arguments DeferenceLoop AmbiguousOperation Pointer 
-    PrimitiveType TypeDeclaration If While DoWhile For Variadic Printf Scanf 
-    Statement ParameterList VariableList Array StatementList Return
-
-%type<boolean> ElseBlock
-
-%type<ast_node_type> BOP UOP Postfix
+    FunctionDeclaration Literal Expression ReturnValue Arguments DeferenceLoop 
+    AmbiguousOperation If While DoWhile For VariableList ElseBlock
+    Variadic Printf Scanf Statement ParameterList Array StatementList 
+    Return StatementListContinuation
+%type<enum_type> BOP UOP Postfix TypeDeclaration PrimitiveType
+%type<boolean> Pointer
 
 %start Program
 
 %%
 
 Program
-    : AstMarker SEPARATOR Declarations
-    {
+    : AST SEPARATOR Declarations {
         $$ = new gerador::ast_node(gerador::ast_node_types::PROGRAM, 
-            ctx.statements());
-        ctx--;
-    }
-    ;
-
-AstMarker
-    : AST
-    {
-        ctx++;
+            *((std::list<const void*>*) $3));
+        delete (std::list<const void*>*) $3;
     }
     ;
 
 Declarations
-    : ConstantDeclaration Declarations
-    | GlobalVarDeclaration Declarations
-    | FunctionDeclaration Declarations
-    | %empty
+    : ConstantDeclaration Declarations {
+        ((std::list<const void*>*) $2)->push_front($1);
+        $$ = $2;
+    }
+    | GlobalVarDeclaration Declarations {
+        ((std::list<const void*>*) $2)->push_front($1);
+        $$ = $2;
+    }
+    | FunctionDeclaration Declarations {
+        ((std::list<const void*>*) $2)->push_front($1);
+        $$ = $2;
+    }
+    | %empty { $$ = new std::list<const void*>(); }
     ;
 
 ConstantDeclaration
-    : CONSTANT COLON ID VALUE COLON Literal SEPARATOR
+    : CONSTANT COLON ID VALUE COLON Literal SEPARATOR {
+        $$ = new gerador::ast_node(
+            gerador::ast_node_types::CONSTANT, std::string($3), (const void*) $6);
+    }
     ;
 
 GlobalVarDeclaration
-    : GLOBAL_VAR COLON ID TYPE COLON TypeDeclaration SEPARATOR
+    : GLOBAL_VAR COLON ID TYPE COLON TypeDeclaration SEPARATOR {
+        $$ = new gerador::ast_node(gerador::ast_node_types::VAR, 
+            std::string($3), static_cast<gerador::var_types>($6));
+    }
     ;
 
 FunctionDeclaration
     : FUNCTION COLON ID SEPARATOR RETURN_TYPE COLON TypeDeclaration SEPARATOR 
         ParameterList VariableList StatementList SEPARATOR 
-        END_FUNCTION OptionalSeparator
+        END_FUNCTION OptionalSeparator {
+        $$ = new gerador::ast_node(gerador::ast_node_types::FUNCTION, 
+            std::string($3), static_cast<gerador::var_types>($7), *((std::list<const void*>*) $10), 
+            *((std::list<const void*>*) $11));
+        delete (std::list<const void*>*) $10;
+    }
     ;
 
 Literal
-    : DECIMAL 
-    {
-        $$ = new gerador::ast_node(gerador::ast_node_types::DECIMAL, $1); 
+    : NUMBER {
+        $$ = new gerador::ast_node(gerador::ast_node_types::NUMBER, $1); 
     }
-    | CHARACTER 
-    {
+    | CHARACTER {
         $$ = new gerador::ast_node(gerador::ast_node_types::CHARACTER, $1);
     }
-    | STRING 
-    {
-        $$ = new gerador::ast_node(gerador::ast_node_types::STRING, std::string($1));
+    | STRING {
+        $$ = new gerador::ast_node(gerador::ast_node_types::STRING, 
+            std::string($1));
     }
     ;
 
 Postfix
-    : INC 
-    {
+    : INC {
         $$ = gerador::ast_node_types::POST_INC;
     }
-    | DEC 
-    {
+    | DEC {
         $$ = gerador::ast_node_types::POST_DEC;
     }
     ;
 
 BOP
-    : DIV 
-    {
+    : DIV {
         $$ = gerador::ast_node_types::DIV;
     }
-    | REMAINDER 
-    {
+    | REMAINDER {
         $$ = gerador::ast_node_types::REMAINDER;
     }
-    | BITWISE_OR 
-    {
+    | BITWISE_OR {
         $$ = gerador::ast_node_types::BITWISE_OR;
     }
-    | BITWISE_XOR 
-    {
+    | BITWISE_XOR {
         $$ = gerador::ast_node_types::BITWISE_XOR;
     }
-    | LOGICAL_AND 
-    {
+    | LOGICAL_AND {
         $$ = gerador::ast_node_types::LOGICAL_AND;
     }
-    | LOGICAL_OR 
-    {
+    | LOGICAL_OR {
         $$ = gerador::ast_node_types::LOGICAL_OR;
     }
-    | EQUAL 
-    {
+    | EQUAL {
         $$ = gerador::ast_node_types::EQUAL;
     }
-    | NOT_EQUAL 
-    {
+    | NOT_EQUAL {
         $$ = gerador::ast_node_types::NOT_EQUAL;
     }
-    | LESS_THAN 
-    {
+    | LESS_THAN {
         $$ = gerador::ast_node_types::LESS_THAN;
     }
-    | GREATER_THAN 
-    { 
+    | GREATER_THAN { 
         $$ = gerador::ast_node_types::GREATER_THAN;
     }
-    | LESS_EQUAL 
-    {
+    | LESS_EQUAL {
         $$ = gerador::ast_node_types::LESS_EQUAL;
     }
-    | GREATER_EQUAL 
-    {
+    | GREATER_EQUAL {
         $$ = gerador::ast_node_types::GREATER_EQUAL;
     }
-    | R_SHIFT 
-    {
+    | R_SHIFT {
         $$ = gerador::ast_node_types::R_SHIFT;
     }
-    | L_SHIFT 
-    {
+    | L_SHIFT {
         $$ = gerador::ast_node_types::L_SHIFT;
     }
-    | ASSIGN 
-    {
+    | ASSIGN {
         $$ = gerador::ast_node_types::ASSIGN;
     }
-    | ADD_ASSIGN 
-    {
+    | ADD_ASSIGN {
         $$ = gerador::ast_node_types::ADD_ASSIGN;
     }
-    | MINUS_ASSIGN 
-    {
+    | MINUS_ASSIGN {
         $$ = gerador::ast_node_types::MINUS_ASSIGN;
     }
     ;
 
 UOP
-    : Postfix 
-    {
+    : Postfix {
         switch($1) {
             case gerador::ast_node_types::POST_INC:
                 $$ = gerador::ast_node_types::PRE_INC;
@@ -204,65 +182,56 @@ UOP
                 break;
         }
     }
-    | BITWISE_NOT 
-    {
+    | BITWISE_NOT {
         $$ = gerador::ast_node_types::BITWISE_NOT;
     }
-    | NOT 
-    {
+    | NOT {
         $$ = gerador::ast_node_types::NOT;
     }
-    | EXIT 
-    {
+    | EXIT {
         $$ = gerador::ast_node_types::EXIT;
     }
     ;
 
 Expression
-    : BOP L_PAREN Expression COMMA Expression R_PAREN 
-    {
+    : BOP L_PAREN Expression COMMA Expression R_PAREN {
         $$ = new gerador::ast_node(static_cast<gerador::ast_node_types>($1), 
             $3, $5);
     }
-    | UOP L_PAREN Expression R_PAREN 
-    {
+    | UOP L_PAREN Expression R_PAREN {
         $$ = new gerador::ast_node(static_cast<gerador::ast_node_types>($1), $3);
     }
-    | MULTIPLY L_PAREN Expression AmbiguousOperation 
-    {
+    | MULTIPLY L_PAREN Expression AmbiguousOperation {
         $$ = $4 == NULL
             ? new gerador::ast_node(gerador::ast_node_types::DEFERENCE, $3)
             : new gerador::ast_node(gerador::ast_node_types::MULTIPLY, $3, $4);
     }
-    | MULTIPLY DeferenceLoop L_PAREN Expression R_PAREN
-    | BITWISE_AND L_PAREN Expression AmbiguousOperation 
-    {
+    | MULTIPLY DeferenceLoop L_PAREN Expression R_PAREN {
+        $$ = $2;
+        *((gerador::ast_node*) $2) = *((gerador::ast_node*) $4);
+    }
+    | BITWISE_AND L_PAREN Expression AmbiguousOperation {
         $$ = $4 == NULL
             ? new gerador::ast_node(gerador::ast_node_types::REFERENCE, $3)
             : new gerador::ast_node(gerador::ast_node_types::BITWISE_AND, $3, $4);
     }
-    | PLUS L_PAREN Expression AmbiguousOperation 
-    {
+    | PLUS L_PAREN Expression AmbiguousOperation {
         $$ = $4 == NULL
             ? new gerador::ast_node(gerador::ast_node_types::POSITIVE, $3)
             : new gerador::ast_node(gerador::ast_node_types::PLUS, $3, $4);
     }
-    | MINUS L_PAREN Expression AmbiguousOperation 
-    {
+    | MINUS L_PAREN Expression AmbiguousOperation {
         $$ = $4 == NULL
             ? new gerador::ast_node(gerador::ast_node_types::NEGATIVE, $3)
             : new gerador::ast_node(gerador::ast_node_types::MINUS, $3, $4);
     }
-    | L_PAREN Expression R_PAREN Postfix 
-    {
+    | L_PAREN Expression R_PAREN Postfix {
         $$ = new gerador::ast_node(static_cast<gerador::ast_node_types>($4), $2);
     }
-    | TERNARY L_PAREN Expression COMMA Expression COMMA Expression R_PAREN 
-    {
+    | TERNARY L_PAREN Expression COMMA Expression COMMA Expression R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::TERNARY, $3, $5, $7);
     }
-    | ID Array 
-    {
+    | ID Array {
         if($2) {
             gerador::ast_node id(gerador::ast_node_types::ID, std::string($1));
             *((gerador::ast_node*) to_access) = id;
@@ -271,41 +240,49 @@ Expression
             $$ = new gerador::ast_node(gerador::ast_node_types::ID, std::string($1));
         }
     }
-    | ID L_PAREN Arguments R_PAREN
-    | Literal 
-    {
-        $$ = $1;
+    | ID L_PAREN Arguments R_PAREN {
+        $$ = new gerador::ast_node(gerador::ast_node_types::CALL, std::string($1), $3);
     }
+    | Literal { $$ = $1; }
     ;
 
 Arguments
-    : Expression Variadic
-    | %empty
+    : Expression Variadic {
+        ((std::list<const void*>*) $2)->push_front($1);
+        $$ = $2;
+    }
+    | %empty {
+        $$ = new std::list<const void*>();
+    }
     ;
 
 DeferenceLoop
-    : DeferenceLoop MULTIPLY
-    | MULTIPLY
+    : DeferenceLoop MULTIPLY {
+        $$ = new gerador::ast_node(gerador::ast_node_types::DEFERENCE, $1);
+    }
+    | MULTIPLY {
+        gerador::ast_node* buf = new gerador::ast_node(
+            gerador::ast_node_types::NOT, (const void*) 0); 
+        to_access = buf;
+        $$ = new gerador::ast_node(gerador::ast_node_types::DEFERENCE, buf);
+    }
     ;
 
 AmbiguousOperation
-    : R_PAREN 
-    {
+    : R_PAREN {
         $$ = NULL;
     }
-    | COMMA Expression R_PAREN 
-    {
+    | COMMA Expression R_PAREN {
         $$ = $2;
     }
     ;
 
 Array
-    : L_BRACKET Expression R_BRACKET Array
-    {
+    : L_BRACKET Expression R_BRACKET Array {
         gerador::ast_node* address;
         if($4 == NULL) {
-            gerador::ast_node* id = 
-                new gerador::ast_node(gerador::ast_node_types::ID, std::string("BUFFER"));
+            gerador::ast_node* id = new gerador::ast_node(
+                gerador::ast_node_types::ID, std::string("BUFFER"));
             address = 
                 new gerador::ast_node(gerador::ast_node_types::PLUS, id, $2);
             to_access = id;
@@ -316,116 +293,112 @@ Array
 
         $$ = new gerador::ast_node(gerador::ast_node_types::DEFERENCE, address);
     }
-    | %empty 
-    { 
+    | %empty { 
         $$ = NULL; 
     }
     ;
 
 Pointer
-    : Pointer MULTIPLY
-    | %empty
-    ;
-
-PrimitiveType
-    : VOID | CHAR | INT
-    ;
-
-TypeDeclaration
-    : PrimitiveType Pointer Array
-    ;
-
-ElseBlock
-    : ElseMarker StatementList
-    {
-        ctx.statements().push_back($2);
+    : Pointer MULTIPLY {
         $$ = true;
     }
-    | %empty
-    {
+    | %empty {
         $$ = false;
     }
     ;
 
-ElseMarker
-    : COMMA
-    {
-        ctx++;
+PrimitiveType
+    : VOID { $$ = gerador::var_types::VOID; }
+    | CHAR { $$ = gerador::var_types::CHAR; }
+    | INT { $$ = gerador::var_types::INT; }
+    ;
+
+TypeDeclaration
+    : PrimitiveType Pointer Array {
+        $$ = $2 
+            ? gerador::var_types::POINTER
+            : $1;
     }
     ;
 
-If
-    : IfMarker L_PAREN Expression COMMA StatementList ElseBlock R_PAREN
-    {
-        if($6) {
-            std::list<const void*> buf = ctx.statements();
-            ctx--;
-            $$ = new gerador::ast_node(gerador::ast_node_types::IF, 
-                $3, ctx.statements(), buf);
-        } else {
-            $$ = new gerador::ast_node(gerador::ast_node_types::IF, 
-                $3, ctx.statements(), std::list<const void*>());
-        }
+ElseBlock
+    : ElseMarker StatementList {
+        $$ = $2;
+    }
+    | %empty { $$ = new std::list<const void*>(); }
+    ;
 
-        ctx--;
+ElseMarker
+    : COMMA { ctx++; }
+    ;
+
+If
+    : IfMarker L_PAREN Expression COMMA StatementList ElseBlock R_PAREN {
+        // if($6) {
+        //     std::list<const void*> buf = ctx.statements();
+        //     ctx--;
+        //     $$ = new gerador::ast_node(gerador::ast_node_types::IF, 
+        //         $3, ctx.statements(), buf);
+        // } else {
+        //     $$ = new gerador::ast_node(gerador::ast_node_types::IF, 
+        //         $3, ctx.statements(), std::list<const void*>());
+        // }
+
+        // ctx--;
+        $$ = new gerador::ast_node(gerador::ast_node_types::IF, $3, 
+            *((std::list<const void*>*) $5), *((std::list<const void*>*) $6));
+        delete (std::list<const void*>*) $5;
+        delete (std::list<const void*>*) $6;
     }
     ;
 
 IfMarker
-    : IF
-    {
+    : IF {
         ctx++;
     }
     ;
 
 While
-    : WhileMarker L_PAREN Expression COMMA StatementList R_PAREN
-    {
+    : WhileMarker L_PAREN Expression COMMA StatementList R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::WHILE, $3,
-            ctx.statements());
+            *((std::list<const void*>*) $5));
     }
     ;
 
 WhileMarker
-    : WHILE
-    {
+    : WHILE {
         ctx++;
     }
     ;
 
 DoWhile
-    : DoWhileMarker L_PAREN Expression COMMA StatementList R_PAREN
-    {
+    : DoWhileMarker L_PAREN Expression COMMA StatementList R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::DO_WHILE, $3,
-            ctx.statements());
+            *((std::list<const void*>*) $5));
     }
     ;
 
 DoWhileMarker
-    : DO_WHILE
-    {
+    : DO_WHILE {
         ctx++;
     }
     ;
 
 For
-    : ForMarker L_PAREN Expression COMMA Expression COMMA Expression COMMA StatementList R_PAREN
-    {
+    : ForMarker L_PAREN Expression COMMA Expression COMMA Expression COMMA StatementList R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::FOR, $3, $5, $7,
-            ctx.statements());
+            *((std::list<const void*>*) $9));
     }
     ;
 
 ForMarker
-    : FOR
-    {
+    : FOR {
         ctx++;
     }
     ;
 
 Return
-    : RETURN L_PAREN ReturnValue
-    {
+    : RETURN L_PAREN ReturnValue {
         $$ = new gerador::ast_node(gerador::ast_node_types::RETURN, $3);
     }
     ;
@@ -436,16 +409,15 @@ ReturnValue
     ;
 
 Variadic
-    : COMMA Expression Variadic
-    {
-        args.push_back($2);
+    : COMMA Expression Variadic {
+        ((std::list<const void*>*) $3)->push_front($2);
+        $$ = $3;
     }
-    | %empty
+    | %empty { $$ = new std::list<const void*>(); }
     ;
 
 Printf
-    : PRINTF L_PAREN STRING Variadic R_PAREN
-    {
+    : PRINTF L_PAREN STRING Variadic R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::PRINTF, 
             std::string("printf"), args);
         args.clear();
@@ -453,24 +425,23 @@ Printf
     ;
 
 Scanf
-    : SCANF L_PAREN STRING Variadic R_PAREN 
-    {
-        $$ = new gerador::ast_node(gerador::ast_node_types::SCANF, std::string("scanf"), 
-            args);
+    : SCANF L_PAREN STRING Variadic R_PAREN {
+        $$ = new gerador::ast_node(gerador::ast_node_types::SCANF, 
+            std::string("scanf"), args);
         args.clear();
     }
     ;
 
 StatementList
-    : StatementListContinuation Statement
-    {
-        ctx.statements().push_back($2);
+    : StatementListContinuation Statement {
+        ((std::list<const void*>*) $1)->push_front($2);
+        $$ = $1;
     }
     ;
 
 StatementListContinuation
-    : StatementList SEPARATOR
-    | %empty
+    : StatementList SEPARATOR { $$ = $1; }
+    | %empty { $$ = new std::list<const void*>(); }
     ;
 
 Statement
@@ -485,13 +456,23 @@ Statement
     ;
 
 ParameterList
-    : ParameterList PARAMETER COLON ID TYPE COLON TypeDeclaration SEPARATOR
-    | %empty
+    : PARAMETER COLON ID TYPE COLON TypeDeclaration SEPARATOR ParameterList {
+        ((std::list<const void*>*) $8)->
+            push_front(new gerador::ast_node(gerador::ast_node_types::PARAM, 
+            std::string($3), static_cast<gerador::var_types>($6)));
+        $$ = $8;
+    }
+    | %empty { $$ = new std::list<const void*>(); }
     ;
 
 VariableList
-    : VariableList VAR COLON ID TYPE COLON TypeDeclaration SEPARATOR
-    | %empty
+    : VAR COLON ID TYPE COLON TypeDeclaration SEPARATOR VariableList {
+        ((std::list<const void*>*) $8)->
+            push_front(new gerador::ast_node(gerador::ast_node_types::VAR, 
+            std::string($3), static_cast<gerador::var_types>($6)));
+        $$ = $8;
+    }
+    | %empty { $$ = new std::list<const void*>; }
     ;
 
 OptionalSeparator

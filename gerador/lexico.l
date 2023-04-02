@@ -2,6 +2,7 @@
 
 %{
 #include <cstdio>
+
 #include "sintatico.yy.hh"
 %}
 
@@ -62,7 +63,7 @@
 ","                         { return COMMA; }
 
 [_a-zA-Z][_a-zA-Z0-9]*      { yylval.string = yytext; return ID;}
-[0-9]+                      { yylval.decimal = std::atoi(yytext); return DECIMAL; }
+[0-9]+                      { yylval.number = std::atoi(yytext); return NUMBER; }
 ["]([^"\\\n]|\\.|\\\n)*["]  { yylval.string = yytext; return STRING; }
 '([^'\\\n]|\\.)'            { yylval.character = 0; return CHARACTER; }
 

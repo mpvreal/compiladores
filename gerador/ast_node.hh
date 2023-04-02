@@ -7,7 +7,7 @@
 namespace gerador {
     typedef const void* param;
     
-    enum var_type { VOID, CHAR, INT, CHAR_PTR, ARRAY_INT, ARRAY_CHAR_PTR };
+    enum var_types { VOID, CHAR, INT, POINTER };
     
     enum ast_node_types { 
         PROGRAM,                 /* PROGRAM  */
@@ -15,6 +15,7 @@ namespace gerador {
         CONSTANT,                /* CONSTANT  */
         FUNCTION,                /* FUNCTION  */
         VAR,                     /* VAR  */
+        PARAM,                   /* PARAM  */
 
         /* CONTROL STRUCTURES */
         FOR,                     /* FOR  */
@@ -69,7 +70,7 @@ namespace gerador {
 
         /* ATOMIC */
         ID,                      /* ID  */
-        DECIMAL,                 /* DECIMAL  */
+        NUMBER,                 /* NUMBER  */
         STRING,                  /* STRING  */
         CHARACTER                /* CHARACTER  */
     };
@@ -82,21 +83,21 @@ namespace gerador {
     };
 
     struct ast_constant { 
-        std::string id; 
-        gerador::var_type type;
-        int value;
+        std::string id;
+        const void* value;
 
-        ast_constant(const std::string& s, gerador::var_type t, int v) : id(s), type(t), value(v) {};
+        ast_constant(const std::string& s, const void* v) 
+            : id(s), value(v) {};
         ~ast_constant() {};
     };
 
     struct ast_function { 
         std::string id; 
-        gerador::var_type return_type;
+        gerador::var_types return_type;
         std::list<param> params; 
         std::list<param> body;  
     
-        ast_function(const std::string& s, gerador::var_type r, 
+        ast_function(const std::string& s, gerador::var_types r, 
             std::list<param>& p, const std::list<param>& b)
             : id(s), return_type(r), params(p), body(b) {};
         ~ast_function() {};
@@ -104,9 +105,9 @@ namespace gerador {
 
     struct ast_var { 
         std::string id; 
-        gerador::var_type type; 
+        gerador::var_types type; 
         
-        ast_var(const std::string& s, gerador::var_type t) : id(s), type(t) {};
+        ast_var(const std::string& s, gerador::var_types t) : id(s), type(t) {};
         ~ast_var() {};
     };
 
@@ -215,14 +216,17 @@ namespace gerador {
         ast_decimal _ast_decimal;
 
         ast_node_representation(const std::list<param>& commands) : _ast_program(commands) {};
-        ast_node_representation(const std::string& s, gerador::var_type t, int v) : _ast_constant(s, t, v) {};
-        ast_node_representation(const std::string& s, gerador::var_type r, 
-            std::list<param>& p, const std::list<param>& b) : _ast_function(s, r, p, b) {};
-        ast_node_representation(const std::string& s, gerador::var_type t) : _ast_var(s, t) {};
-        ast_node_representation(param i, param c, param inc, const std::list<param>& l) : _ast_for(i, c, inc, l) {};
+        ast_node_representation(const std::string& s, const void* v) : _ast_constant(s, v) {};
+        ast_node_representation(const std::string& s, gerador::var_types r, std::list<param>& p, 
+            const std::list<param>& b) : _ast_function(s, r, p, b) {};
+        ast_node_representation(const std::string& s, gerador::var_types t) : _ast_var(s, t) {};
+        ast_node_representation(param i, param c, param inc, const std::list<param>& l) 
+            : _ast_for(i, c, inc, l) {};
         ast_node_representation(param c, const std::list<param>& l) : _ast_while(c, l) {};
-        ast_node_representation(param c, const std::list<param>& t, const std::list<param>& e) : _ast_if(c, t, e) {};
-        ast_node_representation(const std::string& s, const std::list<param> p) : _ast_call(s, p) {};
+        ast_node_representation(param c, const std::list<param>& t, const std::list<param>& e) 
+            : _ast_if(c, t, e) {};
+        ast_node_representation(const std::string& s, const std::list<param> p) 
+            : _ast_call(s, p) {};
         ast_node_representation(param c, param t, param e) : _ast_ternary(c, t, e) {};
         ast_node_representation(param l, param r) : _ast_binary(l, r) {};
         ast_node_representation(param o) : _ast_unary(o) {};
@@ -236,68 +240,39 @@ namespace gerador {
         ast_node_representation rep;
 
         public:
-        ast_node(gerador::ast_node_types node_type, std::list<param>& commands) : rep(commands) {
-            label = node_type;
-        };
-        ast_node(gerador::ast_node_types node_type, std::string& s, 
-            gerador::var_type t, int v) : rep(s, t, v) {
-            label = node_type;
-        };
-        ast_node(gerador::ast_node_types node_type, std::string& s, gerador::var_type r, 
-            std::list<param>& p, const std::list<param>& b) : rep(s, r, p, b) {
-            label = node_type;
-        };
+        ast_node(gerador::ast_node_types node_type, const std::list<param>& commands) 
+            : rep(commands), label(node_type) {};
+        ast_node(gerador::ast_node_types node_type, const std::string& s, const void* v) 
+            : rep(s, v), label(node_type) {};
         ast_node(gerador::ast_node_types node_type, const std::string& s, 
-            gerador::var_type t) : rep(s, t) {
-            label = node_type;
-        };
+            gerador::var_types r, std::list<param>& p, const std::list<param>& b) 
+            : rep(s, r, p, b), label(node_type) {};
+        ast_node(gerador::ast_node_types node_type, const std::string& s, gerador::var_types t) 
+            : rep(s, t), label(node_type) {};
         ast_node(gerador::ast_node_types node_type, param i, param c, param inc, 
-            const std::list<param>& l) : rep(i, c, inc, l) {
-            label = node_type;
-        };
-        ast_node(gerador::ast_node_types node_type, param c, const std::list<param>& l) : rep(c, l) {
-            label = node_type;
-        };
+            const std::list<param>& l) 
+            : rep(i, c, inc, l), label(node_type) {};
+        ast_node(gerador::ast_node_types node_type, param c, const std::list<param>& l) 
+            : rep(c, l), label(node_type) {};
         ast_node(gerador::ast_node_types node_type, param c, const std::list<param>& t, 
-            const std::list<param>& e) : rep(c, t, e) {
-            label = node_type;
-        };
+            const std::list<param>& e) 
+            : rep(c, t, e), label(node_type) {};
         ast_node(gerador::ast_node_types node_type, const std::string& s, 
-            const std::list<param>& p) : rep(s, p) {
-            label = node_type;
-        };
-        ast_node(gerador::ast_node_types node_type, param c, param t, param e) : rep(c, t, e) {
-            label = node_type;
-        };
-        ast_node(gerador::ast_node_types node_type, param l, param r) : rep(l, r) {
-            label = node_type;
-        };
-        ast_node(gerador::ast_node_types node_type, param o) : rep(o) {
-            label = node_type;
-        };
-        ast_node(gerador::ast_node_types node_type, const std::string& s) : rep(s) {
-            label = node_type;
-        };
-        ast_node(gerador::ast_node_types node_type, int v) : rep(v) {
-            label = node_type;
-        };
-
+            const std::list<param>& p) 
+            : rep(s, p), label(node_type) {};
+        ast_node(gerador::ast_node_types node_type, param c, param t, param e) 
+            : rep(c, t, e), label(node_type) {};
+        ast_node(gerador::ast_node_types node_type, param l, param r) 
+            : rep(l, r), label(node_type) {};
+        ast_node(gerador::ast_node_types node_type, param o) 
+            : rep(o), label(node_type) {};
+        ast_node(gerador::ast_node_types node_type, const std::string& s) 
+            : rep(s), label(node_type) {};
+        ast_node(gerador::ast_node_types node_type, int v) 
+            : rep(v), label(node_type) {};
         ~ast_node() {};
 
-        ast_node& operator=(const ast_node& node) {
-            if(this == &node) return *this;
-            if(label != node.label) return *this;
-
-            switch(label) {
-                case ID:
-                    rep._ast_text.id = node.rep._ast_text.id;
-                    break;
-                default:
-                    break;
-            }
-
-            return *this;
-        };
+        ast_node& operator=(const ast_node& node);
     };
 }
 
