@@ -23,8 +23,6 @@
 "IF"                        { return IF; }
 "WHILE"                     { return WHILE; }
 "FOR"                       { return FOR; }
-"PRINTF"                    { return PRINTF; }
-"SCANF"                     { return SCANF; }
 "EXIT"                      { return EXIT; }
 "RETURN"                    { return RETURN; }
 "RETURN_TYPE"               { return RETURN_TYPE; }
@@ -62,9 +60,9 @@
 ":"                         { return COLON; }
 ","                         { return COMMA; }
 
-[_a-zA-Z][_a-zA-Z0-9]*      { yylval.string = yytext; return ID;}
+[_a-zA-Z][_a-zA-Z0-9]*      { strcpy(yylval.string, yytext); return ID;}
 [0-9]+                      { yylval.number = std::atoi(yytext); return NUMBER; }
-["]([^"\\\n]|\\.|\\\n)*["]  { yylval.string = yytext; return STRING; }
+["]([^"\\\n]|\\.|\\\n)*["]  { strcpy(yylval.string, yytext); return STRING; }
 '([^'\\\n]|\\.)'            { yylval.character = 0; return CHARACTER; }
 
 [\t\f\h ]+                  {  }

@@ -12,6 +12,7 @@ namespace gerador {
         ~ast() {};
 
         void set_program(ast_node* p);
+        void draw();
     };
 }
 

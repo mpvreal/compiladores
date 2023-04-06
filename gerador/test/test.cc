@@ -1,18 +1,12 @@
 #include <iostream>
 #include <list>
 
-union param {
-    int i;
-    double d;
-};
-
 int main() {
-    param a = { .d = 3.14 };
-    param b;
+    std::list<const void*> l;
 
-    b = a;
-
-    std::cout << b.d << std::endl;
+    for(const void*& i : l) {
+        *((int*) i);
+    }
 
     return 0;
 }

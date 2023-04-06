@@ -1,6 +1,5 @@
 %{
 #include "ast.hh"
-#include "context.hh"
 
 extern int yylex();
 extern int yyparse();
@@ -13,7 +12,7 @@ void* to_access;
 %}
 
 %union {
-    const char* string;
+    char string[256];
     void* ast_node;
     int number;
     int enum_type;
@@ -22,7 +21,7 @@ void* to_access;
 }
 
 %token VOID CHAR INT CONSTANT GLOBAL_VAR VAR TYPE FUNCTION END_FUNCTION 
-    PARAMETER VALUE DO_WHILE IF WHILE FOR PRINTF SCANF EXIT RETURN 
+    PARAMETER VALUE DO_WHILE IF WHILE FOR EXIT RETURN 
     RETURN_TYPE PLUS MINUS MULTIPLY DIV REMAINDER BITWISE_AND 
     BITWISE_OR BITWISE_XOR LOGICAL_AND LOGICAL_OR EQUAL NOT_EQUAL 
     LESS_THAN GREATER_THAN LESS_EQUAL GREATER_EQUAL R_SHIFT L_SHIFT 
@@ -36,7 +35,7 @@ void* to_access;
 %type<ast_node> Program Declarations ConstantDeclaration GlobalVarDeclaration 
     FunctionDeclaration Literal Expression ReturnValue Arguments DeferenceLoop 
     AmbiguousOperation If While DoWhile For VariableList ElseBlock
-    Variadic Printf Scanf Statement ParameterList Array StatementList 
+    Variadic /*Printf Scanf*/ Statement ParameterList Array StatementList 
     Return StatementListContinuation
 %type<enum_type> BOP UOP Postfix TypeDeclaration PrimitiveType
 %type<boolean> Pointer
@@ -89,8 +88,8 @@ FunctionDeclaration
         ParameterList VariableList StatementList SEPARATOR 
         END_FUNCTION OptionalSeparator {
         $$ = new gerador::ast_node(gerador::ast_node_types::FUNCTION, 
-            std::string($3), static_cast<gerador::var_types>($7), *((std::list<const void*>*) $10), 
-            *((std::list<const void*>*) $11));
+            std::string($3), static_cast<gerador::var_types>($7), *((std::list<const void*>*) $9), 
+            *((std::list<const void*>*) $10), *((std::list<const void*>*) $11));
         delete (std::list<const void*>*) $10;
     }
     ;
@@ -244,7 +243,8 @@ Expression
         }
     }
     | ID L_PAREN Arguments R_PAREN {
-        $$ = new gerador::ast_node(gerador::ast_node_types::CALL, std::string($1), $3);
+        $$ = new gerador::ast_node(gerador::ast_node_types::CALL, std::string($1), 
+            *((std::list<const void*>*) $3));
     }
     | Literal { $$ = $1; }
     ;
@@ -380,22 +380,6 @@ Variadic
     | %empty { $$ = new std::list<const void*>(); }
     ;
 
-Printf
-    : PRINTF L_PAREN STRING Variadic R_PAREN {
-        $$ = new gerador::ast_node(gerador::ast_node_types::PRINTF, 
-            std::string("printf"), args);
-        args.clear();
-    }
-    ;
-
-Scanf
-    : SCANF L_PAREN STRING Variadic R_PAREN {
-        $$ = new gerador::ast_node(gerador::ast_node_types::SCANF, 
-            std::string("scanf"), args);
-        args.clear();
-    }
-    ;
-
 StatementList
     : StatementListContinuation Statement {
         ((std::list<const void*>*) $1)->push_front($2);
@@ -413,8 +397,8 @@ Statement
     | While { $$ = $1; }
     | DoWhile { $$ = $1; }
     | For { $$ = $1; }
-    | Printf { $$ = $1; }
-    | Scanf { $$ = $1; }
+    /* | Printf { $$ = $1; }
+    | Scanf { $$ = $1; } */
     | Expression { $$ = $1; }
     | Return { $$ = $1; }
     ;
@@ -456,6 +440,8 @@ int main(int argc, char **argv) {
     #endif
 
     yyparse();
+
+    program.draw();
  
     return 0;
 }
