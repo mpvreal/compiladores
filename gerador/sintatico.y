@@ -1,4 +1,7 @@
 %{
+#include <cstring>
+#include <iostream>
+
 #include "ast.hh"
 
 extern int yylex();
@@ -6,17 +9,23 @@ extern int yyparse();
 extern void yyerror(char*);
 
 gerador::ast program;
+gerador::instruction_set is;
 
-std::list<const void*> args;
-void* to_access;
+static std::map<std::string, std::vector<int>> array_map;
+static std::vector<gerador::ast_node*>* current_array;
+static gerador::ast_node* to_access;
+static int current_type_size = 1;
+static int array_size = 1;
 %}
 
 %union {
+    std::vector<gerador::ast_node*>* ast_node_list;
+    gerador::ast_node* ast_node;
+    gerador::var_types var_type;
+    gerador::ast_node_types ast_node_type;
     char string[256];
-    void* ast_node;
-    int number;
-    int enum_type;
     char character;
+    int number;
     bool boolean;
 }
 
@@ -32,12 +41,13 @@ void* to_access;
 %token<number> NUMBER 
 %token<character> CHARACTER
 
-%type<ast_node> Program Declarations ConstantDeclaration GlobalVarDeclaration 
-    FunctionDeclaration Literal Expression ReturnValue Arguments DeferenceLoop 
-    AmbiguousOperation If While DoWhile For VariableList ElseBlock
-    Variadic /*Printf Scanf*/ Statement ParameterList Array StatementList 
-    Return StatementListContinuation
-%type<enum_type> BOP UOP Postfix TypeDeclaration PrimitiveType
+%type<ast_node_list> Declarations Arguments ElseBlock Variadic StatementListContinuation
+    ParameterList VariableList StatementList Array
+%type<ast_node> Program ConstantDeclaration GlobalVarDeclaration FunctionDeclaration Return
+    Literal Expression ReturnValue DeferenceLoop AmbiguousOperation If While DoWhile For Statement    
+%type<ast_node_type> Postfix BOP UOP
+/* %type<string> IdAccess */
+%type<var_type> TypeDeclaration PrimitiveType
 %type<boolean> Pointer
 
 %start Program
@@ -46,40 +56,67 @@ void* to_access;
 
 Program
     : AST SEPARATOR Declarations {
-        $$ = new gerador::ast_node(gerador::ast_node_types::PROGRAM, 
-            *((std::list<const void*>*) $3));
-        delete (std::list<const void*>*) $3;
-        program.set_program((gerador::ast_node*) $$);
+        $$ = new gerador::ast_node(gerador::ast_node_types::PROGRAM, *$3);
+        delete $3;
+        program.set_program($$);
     }
     ;
 
 Declarations
-    : ConstantDeclaration Declarations {
-        ((std::list<const void*>*) $2)->push_front($1);
-        $$ = $2;
+    : Declarations ConstantDeclaration {
+        $1->push_back($2);
+        $$ = $1;
     }
-    | GlobalVarDeclaration Declarations {
-        ((std::list<const void*>*) $2)->push_front($1);
-        $$ = $2;
+    | Declarations GlobalVarDeclaration {
+        $1->push_back($2);
+        $$ = $1;
     }
-    | FunctionDeclaration Declarations {
-        ((std::list<const void*>*) $2)->push_front($1);
-        $$ = $2;
+    | Declarations FunctionDeclaration {
+        $1->push_back($2);
+        $$ = $1;
     }
-    | %empty { $$ = new std::list<const void*>(); }
+    | %empty { $$ = new std::vector<gerador::ast_node*>(); }
     ;
 
 ConstantDeclaration
     : CONSTANT COLON ID VALUE COLON Literal SEPARATOR {
         $$ = new gerador::ast_node(
-            gerador::ast_node_types::CONSTANT, std::string($3), (const void*) $6);
+            gerador::ast_node_types::CONSTANT, std::string($3), $6);
+
+        is.add_const($3, $6->get_number_value());
+
+        delete $6;
     }
     ;
 
 GlobalVarDeclaration
     : GLOBAL_VAR COLON ID TYPE COLON TypeDeclaration SEPARATOR {
-        $$ = new gerador::ast_node(gerador::ast_node_types::VAR, 
-            std::string($3), static_cast<gerador::var_types>($6));
+        int size = 1;
+        if(current_array != nullptr) {    
+            std::vector<int> dimension_products;
+            int product = 1;
+            
+            for(int k = 0; k < current_array->size(); k++) {
+                for(int l = k + 1; l < current_array->size(); l++) {
+                    product *= (*current_array)[l]->get_number_value();
+                }
+                size *= (*current_array)[k]->get_number_value();
+                dimension_products.push_back(product);
+                product = 1;
+            }
+
+            // std::cout << "dimension_products = " << std::endl;
+            // for(auto& i : dimension_products) {
+            //     std::cout << i << ' ';
+            // }
+
+            array_map.insert({std::string($3), dimension_products});
+            $$ = new gerador::ast_node(gerador::ast_node_types::GLOBAL_VAR, 
+                std::string($3), $6);
+        }
+        is.add_global_var($3, $6, is.offset());
+        is.add_data($3, gerador::global_type::SPACE, 
+            size * (($6 != gerador::var_types::CHAR) ? 4 : 1));
     }
     ;
 
@@ -88,9 +125,9 @@ FunctionDeclaration
         ParameterList VariableList StatementList SEPARATOR 
         END_FUNCTION OptionalSeparator {
         $$ = new gerador::ast_node(gerador::ast_node_types::FUNCTION, 
-            std::string($3), static_cast<gerador::var_types>($7), *((std::list<const void*>*) $9), 
-            *((std::list<const void*>*) $10), *((std::list<const void*>*) $11));
-        delete (std::list<const void*>*) $10;
+            std::string($3), $7, *$9, 
+            *$10, *$11);
+        delete $10;
     }
     ;
 
@@ -118,7 +155,7 @@ Postfix
 
 BOP
     : DIV {
-        $$ = gerador::ast_node_types::DIV;
+        $$ = gerador::ast_node_types::DIVISION;
     }
     | REMAINDER {
         $$ = gerador::ast_node_types::REMAINDER;
@@ -197,11 +234,10 @@ UOP
 
 Expression
     : BOP L_PAREN Expression COMMA Expression R_PAREN {
-        $$ = new gerador::ast_node(static_cast<gerador::ast_node_types>($1), 
-            $3, $5);
+        $$ = new gerador::ast_node($1, $3, $5);
     }
     | UOP L_PAREN Expression R_PAREN {
-        $$ = new gerador::ast_node(static_cast<gerador::ast_node_types>($1), $3);
+        $$ = new gerador::ast_node($1, $3);
     }
     | MULTIPLY L_PAREN Expression AmbiguousOperation {
         $$ = $4 == NULL
@@ -210,7 +246,7 @@ Expression
     }
     | MULTIPLY DeferenceLoop L_PAREN Expression R_PAREN {
         $$ = $2;
-        *((gerador::ast_node*) $2) = *((gerador::ast_node*) $4);
+        $2 = $4;
     }
     | BITWISE_AND L_PAREN Expression AmbiguousOperation {
         $$ = $4 == NULL
@@ -228,34 +264,85 @@ Expression
             : new gerador::ast_node(gerador::ast_node_types::MINUS, $3, $4);
     }
     | L_PAREN Expression R_PAREN Postfix {
-        $$ = new gerador::ast_node(static_cast<gerador::ast_node_types>($4), $2);
+        $$ = new gerador::ast_node($4, $2);
     }
     | TERNARY L_PAREN Expression COMMA Expression COMMA Expression R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::TERNARY, $3, $5, $7);
     }
     | ID Array {
-        if($2) {
-            gerador::ast_node id(gerador::ast_node_types::ID, std::string($1));
-            *((gerador::ast_node*) to_access) = id;
-            $$ = $2;
+        if(!$2->empty()) {
+            std::vector<int>& products = array_map.find($1)->second;
+            gerador::symbol* s = is.get_symbol($1);
+            if(s != nullptr) switch(s->type) {
+                case gerador::var_types::INT:
+                case gerador::var_types::POINTER:
+                    current_type_size = 4;
+                    break;
+                case gerador::var_types::CHAR:
+                    current_type_size = 1;
+                    break;
+                default:
+                    break;
+            }
+            
+            gerador::ast_node* n = new gerador::ast_node(gerador::ast_node_types::ID, std::string($1));
+
+            for(int i = 0; i < products.size(); i++) {
+                n = new gerador::ast_node(gerador::ast_node_types::PLUS, n, 
+                        new gerador::ast_node(gerador::ast_node_types::MULTIPLY, 
+                        new gerador::ast_node(gerador::ast_node_types::MULTIPLY, 
+                        new gerador::ast_node(gerador::ast_node_types::NUMBER, products[i]), 
+                        new gerador::ast_node(gerador::ast_node_types::NUMBER, 4)), (*$2)[i]));
+            }
+
+            $$ = new gerador::ast_node(gerador::ast_node_types::DEFERENCE, n);
         } else {
             $$ = new gerador::ast_node(gerador::ast_node_types::ID, std::string($1));
         }
     }
     | ID L_PAREN Arguments R_PAREN {
-        $$ = new gerador::ast_node(gerador::ast_node_types::CALL, std::string($1), 
-            *((std::list<const void*>*) $3));
+        auto to_upper_case = [](char (&str)[256]) -> std::string {
+            std::string ret = "";
+            int i = 0;
+            while(str[i] != '\0') ret += toupper(str[i++]);    
+            return ret;
+        };
+
+        if(to_upper_case($1) == "PRINTF") {
+            $$ = new gerador::ast_node(gerador::ast_node_types::PRINTF, std::string($1), *$3);
+        } else if(to_upper_case($1) == "SCANF") {
+            $$ = new gerador::ast_node(gerador::ast_node_types::SCANF, std::string($1), *$3);
+        } else
+            $$ = new gerador::ast_node(gerador::ast_node_types::CALL, std::string($1), *$3);
     }
     | Literal { $$ = $1; }
     ;
 
+/* IdAccess
+    : ID { 
+        strcpy($$, $1);
+        gerador::symbol* s = is.get_symbol($1);
+        if(s != nullptr) switch(s->type) {
+            case gerador::var_types::INT:
+            case gerador::var_types::POINTER:
+                current_type_size = 4;
+                break;
+            case gerador::var_types::CHAR:
+                current_type_size = 1;
+                break;
+            default:
+                break;
+        }
+    }
+    ; */
+
 Arguments
     : Expression Variadic {
-        ((std::list<const void*>*) $2)->push_front($1);
+        $2->insert($2->begin(), $1);
         $$ = $2;
     }
     | %empty {
-        $$ = new std::list<const void*>();
+        $$ = new std::vector<gerador::ast_node*>();
     }
     ;
 
@@ -265,7 +352,7 @@ DeferenceLoop
     }
     | MULTIPLY {
         gerador::ast_node* buf = new gerador::ast_node(
-            gerador::ast_node_types::NOT, (const void*) 0); 
+            gerador::ast_node_types::NOT, nullptr); 
         to_access = buf;
         $$ = new gerador::ast_node(gerador::ast_node_types::DEFERENCE, buf);
     }
@@ -281,23 +368,12 @@ AmbiguousOperation
     ;
 
 Array
-    : L_BRACKET Expression R_BRACKET Array {
-        gerador::ast_node* address;
-        if($4 == NULL) {
-            gerador::ast_node* id = new gerador::ast_node(
-                gerador::ast_node_types::ID, std::string("BUFFER"));
-            address = 
-                new gerador::ast_node(gerador::ast_node_types::PLUS, id, $2);
-            to_access = id;
-        } else {
-            address = 
-                new gerador::ast_node(gerador::ast_node_types::PLUS, $4, $2);
-        }
-
-        $$ = new gerador::ast_node(gerador::ast_node_types::DEFERENCE, address);
+    : Array L_BRACKET Expression R_BRACKET {
+        $1->push_back($3);
+        $$ = $1;
     }
     | %empty { 
-        $$ = NULL; 
+        $$ = new std::vector<gerador::ast_node*>();
     }
     ;
 
@@ -318,9 +394,14 @@ PrimitiveType
 
 TypeDeclaration
     : PrimitiveType Pointer Array {
-        $$ = $2 
+        $$ = $2
             ? gerador::var_types::POINTER
             : $1;
+
+        if(! $3->empty())
+            current_array = $3;
+        else
+            current_array = nullptr;
     }
     ;
 
@@ -328,36 +409,36 @@ ElseBlock
     : COMMA StatementList {
         $$ = $2;
     }
-    | %empty { $$ = new std::list<const void*>(); }
+    | %empty { $$ = new std::vector<gerador::ast_node*>(); }
     ;
 
 If
     : IF L_PAREN Expression COMMA StatementList ElseBlock R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::IF, $3, 
-            *((std::list<const void*>*) $5), *((std::list<const void*>*) $6));
-        delete (std::list<const void*>*) $5;
-        delete (std::list<const void*>*) $6;
+            *$5, *$6);
+        delete $5;
+        delete $6;
     }
     ;
 
 While
     : WHILE L_PAREN Expression COMMA StatementList R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::WHILE, $3,
-            *((std::list<const void*>*) $5));
+            *$5);
     }
     ;
 
 DoWhile
     : DO_WHILE L_PAREN Expression COMMA StatementList R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::DO_WHILE, $3,
-            *((std::list<const void*>*) $5));
+            *$5);
     }
     ;
 
 For
     : FOR L_PAREN Expression COMMA Expression COMMA Expression COMMA StatementList R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::FOR, $3, $5, $7,
-            *((std::list<const void*>*) $9));
+            *$9);
     }
     ;
 
@@ -373,23 +454,23 @@ ReturnValue
     ;
 
 Variadic
-    : COMMA Expression Variadic {
-        ((std::list<const void*>*) $3)->push_front($2);
-        $$ = $3;
+    : Variadic COMMA Expression {
+        $1->push_back($3);
+        $$ = $1;
     }
-    | %empty { $$ = new std::list<const void*>(); }
+    | %empty { $$ = new std::vector<gerador::ast_node*>(); }
     ;
 
 StatementList
     : StatementListContinuation Statement {
-        ((std::list<const void*>*) $1)->push_front($2);
+        $1->push_back($2);
         $$ = $1;
     }
     ;
 
 StatementListContinuation
     : StatementList SEPARATOR { $$ = $1; }
-    | %empty { $$ = new std::list<const void*>(); }
+    | %empty { $$ = new std::vector<gerador::ast_node*>(); }
     ;
 
 Statement
@@ -397,30 +478,69 @@ Statement
     | While { $$ = $1; }
     | DoWhile { $$ = $1; }
     | For { $$ = $1; }
-    /* | Printf { $$ = $1; }
-    | Scanf { $$ = $1; } */
     | Expression { $$ = $1; }
     | Return { $$ = $1; }
     ;
 
 ParameterList
-    : PARAMETER COLON ID TYPE COLON TypeDeclaration SEPARATOR ParameterList {
-        ((std::list<const void*>*) $8)->
-            push_front(new gerador::ast_node(gerador::ast_node_types::PARAM, 
-            std::string($3), static_cast<gerador::var_types>($6)));
-        $$ = $8;
+    : ParameterList PARAMETER COLON ID TYPE COLON TypeDeclaration SEPARATOR {
+        if(current_array != nullptr) {    
+            std::vector<int> dimension_products;
+            int product = 1,
+                size = 1;
+            
+            for(int k = 0; k < current_array->size(); k++) {
+                for(int l = k + 1; l < current_array->size(); l++) {
+                    product *= (*current_array)[l]->get_number_value();
+                }
+                size *= (*current_array)[k]->get_number_value();
+                dimension_products.push_back(product);
+                product = 1;
+            }
+
+            // std::cout << "dimension_products = " << std::endl;
+            // for(auto& i : dimension_products) {
+            //     std::cout << i << ' ';
+            // }
+
+            array_map.insert({std::string($4), dimension_products});
+        }
+        is.add_parameter($4, gerador::ast_node_types::PARAM, $7);
+        $1->push_back(new gerador::ast_node(gerador::ast_node_types::PARAM, 
+            std::string($4), $7));
+        $$ = $1;
     }
-    | %empty { $$ = new std::list<const void*>(); }
+    | %empty { $$ = new std::vector<gerador::ast_node*>(); }
     ;
 
 VariableList
-    : VAR COLON ID TYPE COLON TypeDeclaration SEPARATOR VariableList {
-        ((std::list<const void*>*) $8)->
-            push_front(new gerador::ast_node(gerador::ast_node_types::VAR, 
-            std::string($3), static_cast<gerador::var_types>($6)));
-        $$ = $8;
+    : VariableList VAR COLON ID TYPE COLON TypeDeclaration SEPARATOR {
+        if(current_array != nullptr) {    
+            std::vector<int> dimension_products;
+            int product = 1,
+                size = 1;
+            
+            for(int k = 0; k < current_array->size(); k++) {
+                for(int l = k + 1; l < current_array->size(); l++) {
+                    product *= (*current_array)[l]->get_number_value();
+                }
+                size *= (*current_array)[k]->get_number_value();
+                dimension_products.push_back(product);
+                product = 1;
+            }
+
+            // std::cout << "dimension_products = " << std::endl;
+            // for(auto& i : dimension_products) {
+            //     std::cout << i << ' ';
+            // }
+
+            array_map.insert({std::string($4), dimension_products});
+        }
+        is.add_variable(std::string($4), $7);
+        $1->push_back(new gerador::ast_node(gerador::ast_node_types::VAR, std::string($4), $7));
+        $$ = $1;
     }
-    | %empty { $$ = new std::list<const void*>; }
+    | %empty { $$ = new std::vector<gerador::ast_node*>; }
     ;
 
 OptionalSeparator
@@ -441,7 +561,11 @@ int main(int argc, char **argv) {
 
     yyparse();
 
-    program.draw();
+    program.compile(is);
+
+    is.print();
+
+    /* program.draw(); */
  
     return 0;
 }

@@ -25,3 +25,5 @@ debug: $(LEXICO) $(SINTATICO)
 clean:
 	rm -f lex.yy.cc sintatico.yy.cc sintatico.tab.cc sintatico.yy.hh sintatico.tab.h $(PROGRAMA)
 	rm -f lexico.exe lexico
+	rm -f vgcore.*
+	rm -f *.output

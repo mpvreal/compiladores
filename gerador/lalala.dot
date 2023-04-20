@@ -1,0 +1,156 @@
+digraph ast {
+    n0 [label="PROGRAM"]
+    n1 [label="FUNCTION: main
+TYPE: $zero"]
+    n2 [label="VAR: a
+TYPE: $zero"]
+    n3 [label="VAR: b
+TYPE: $zero"]
+    n4 [label="VAR: c
+TYPE: $zero"]
+    n5 [label="PRINTF"]
+    n6 [label=<"=== Determinar Tipo de Triangulo ===\n\n">]
+    n7 [label="PRINTF"]
+    n8 [label=<"Entre com o tamanho do lado A: ">]
+    n9 [label="SCANF"]
+    n10 [label=<"%d">]
+    n11 [label="REFERENCE"]
+    n12 [label="ID: a"]
+    n13 [label="PRINTF"]
+    n14 [label=<"Entre com o tamanho do lado B: ">]
+    n15 [label="SCANF"]
+    n16 [label=<"%d">]
+    n17 [label="REFERENCE"]
+    n18 [label="ID: b"]
+    n19 [label="PRINTF"]
+    n20 [label=<"Entre com o tamanho do lado C: ">]
+    n21 [label="SCANF"]
+    n22 [label=<"%d">]
+    n23 [label="REFERENCE"]
+    n24 [label="ID: c"]
+    n25 [label="PRINTF"]
+    n26 [label=<"\n">]
+    n27 [label="IF"]
+    n28 [label="LOGICAL_AND"]
+    n29 [label="LOGICAL_AND"]
+    n30 [label="LESS_THAN"]
+    n31 [label="ID: a"]
+    n32 [label="PLUS"]
+    n33 [label="ID: b"]
+    n34 [label="ID: c"]
+    n35 [label="LESS_THAN"]
+    n36 [label="ID: b"]
+    n37 [label="PLUS"]
+    n38 [label="ID: a"]
+    n39 [label="ID: c"]
+    n40 [label="LESS_THAN"]
+    n41 [label="ID: c"]
+    n42 [label="PLUS"]
+    n43 [label="ID: a"]
+    n44 [label="ID: b"]
+    n45 [label="IF"]
+    n46 [label="LOGICAL_AND"]
+    n47 [label="EQUAL"]
+    n48 [label="ID: a"]
+    n49 [label="ID: b"]
+    n50 [label="EQUAL"]
+    n51 [label="ID: b"]
+    n52 [label="ID: c"]
+    n53 [label="PRINTF"]
+    n54 [label=<"Triangulo Equilatero.">]
+    n55 [label="IF"]
+    n56 [label="LOGICAL_OR"]
+    n57 [label="LOGICAL_OR"]
+    n58 [label="EQUAL"]
+    n59 [label="ID: a"]
+    n60 [label="ID: b"]
+    n61 [label="EQUAL"]
+    n62 [label="ID: a"]
+    n63 [label="ID: c"]
+    n64 [label="EQUAL"]
+    n65 [label="ID: c"]
+    n66 [label="ID: b"]
+    n67 [label="PRINTF"]
+    n68 [label=<"Triangulo Isosceles.">]
+    n69 [label="PRINTF"]
+    n70 [label=<"Triangulo Escaleno.">]
+    n71 [label="PRINTF"]
+    n72 [label=<"Nao eh Triangulo!!!\n">]
+    n73 [label="RETURN"]
+    n74 [label="0"]
+
+    n0 -> n1
+    n1 -> n2
+    n1 -> n3
+    n1 -> n4
+    n1 -> n5
+    n5 -> n6
+    n1 -> n7
+    n7 -> n8
+    n1 -> n9
+    n9 -> n10
+    n9 -> n11
+    n11 -> n12
+    n1 -> n13
+    n13 -> n14
+    n1 -> n15
+    n15 -> n16
+    n15 -> n17
+    n17 -> n18
+    n1 -> n19
+    n19 -> n20
+    n1 -> n21
+    n21 -> n22
+    n21 -> n23
+    n23 -> n24
+    n1 -> n25
+    n25 -> n26
+    n1 -> n27
+    n27 -> n28
+    n28 -> n29
+    n29 -> n30
+    n30 -> n31
+    n30 -> n32
+    n32 -> n33
+    n32 -> n34
+    n29 -> n35
+    n35 -> n36
+    n35 -> n37
+    n37 -> n38
+    n37 -> n39
+    n28 -> n40
+    n40 -> n41
+    n40 -> n42
+    n42 -> n43
+    n42 -> n44
+    n27 -> n45
+    n45 -> n46
+    n46 -> n47
+    n47 -> n48
+    n47 -> n49
+    n46 -> n50
+    n50 -> n51
+    n50 -> n52
+    n45 -> n53
+    n53 -> n54
+    n45 -> n55
+    n55 -> n56
+    n56 -> n57
+    n57 -> n58
+    n58 -> n59
+    n58 -> n60
+    n57 -> n61
+    n61 -> n62
+    n61 -> n63
+    n56 -> n64
+    n64 -> n65
+    n64 -> n66
+    n55 -> n67
+    n67 -> n68
+    n55 -> n69
+    n69 -> n70
+    n27 -> n71
+    n71 -> n72
+    n1 -> n73
+    n73 -> n74
+}

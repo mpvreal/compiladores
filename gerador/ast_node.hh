@@ -1,291 +1,203 @@
 #ifndef AST_NODE_HH
 #define AST_NODE_HH
 
+#include <vector>
 #include <list>
 #include <string>
 
+#include "mips.hh"
+
 namespace gerador {
-    typedef const void* param;
-
-    enum var_types { VOID, CHAR, INT, POINTER };
-    enum ast_node_types { 
-        PROGRAM,                 /* PROGRAM  */
-        /* DECLARATIONS */
-        CONSTANT,                /* CONSTANT  */
-        FUNCTION,                /* FUNCTION  */
-        VAR,                     /* VAR  */
-        PARAM,                   /* PARAM  */
-
-        /* CONTROL STRUCTURES */
-        FOR,                     /* FOR  */
-        WHILE,                   /* WHILE  */
-        DO_WHILE,                /* DO_WHILE  */
-        IF,                      /* IF  */
-
-        /* VARIADIC OPERATORS */
-        CALL,                    /* CALL  */
-        PRINTF,                  /* PRINTF  */
-        SCANF,                   /* SCANF  */
-        
-        /* TERNARY OPERATORS */
-        TERNARY,                 
-        
-        /* BINARY OPERATORS */
-        PLUS,                    /* PLUS  */
-        MINUS,                   /* MINUS  */
-        MULTIPLY,                /* MULTIPLY  */
-        DIV,                     /* DIV  */
-        REMAINDER,               /* REMAINDER  */
-        BITWISE_AND,             /* BITWISE_AND  */
-        BITWISE_OR,              /* BITWISE_OR  */
-        BITWISE_XOR,             /* BITWISE_XOR  */
-        LOGICAL_AND,             /* LOGICAL_AND  */
-        LOGICAL_OR,              /* LOGICAL_OR  */
-        EQUAL,                   /* EQUAL  */
-        NOT_EQUAL,               /* NOT_EQUAL  */
-        LESS_THAN,               /* LESS_THAN  */
-        GREATER_THAN,            /* GREATER_THAN  */
-        LESS_EQUAL,              /* LESS_EQUAL  */
-        GREATER_EQUAL,           /* GREATER_EQUAL  */
-        R_SHIFT,                 /* R_SHIFT  */
-        L_SHIFT,                 /* L_SHIFT  */
-        ASSIGN,                  /* ASSIGN  */
-        ADD_ASSIGN,              /* ADD_ASSIGN  */
-        MINUS_ASSIGN,            /* MINUS_ASSIGN  */
-
-        /* UNARY OPERATORS */
-        PRE_INC,                 /* INC  */
-        PRE_DEC,                 /* DEC  */
-        POST_INC,                /* PRE-INC  */
-        POST_DEC,                /* POST-DEC  */
-        BITWISE_NOT,             /* BITWISE_NOT  */
-        REFERENCE,               /* REFERENCE  */
-        DEFERENCE,             /* DEREFERENCE  */
-        NEGATIVE,                /* NEGATIVE  */
-        POSITIVE,                /* POSITIVE  */
-        NOT,                     /* NOT  */
-        EXIT,                    /* EXIT  */
-        RETURN,                  /* RETURN  */
-
-        /* ATOMIC */
-        ID,                      /* ID  */
-        NUMBER,                 /* NUMBER  */
-        STRING,                  /* STRING  */
-        CHARACTER                /* CHARACTER  */
-    };
-
-    struct ast_program { 
-        std::list<param> commands; 
-
-        ast_program(const std::list<param>& c) : commands(c) {};
-        ~ast_program() {};
-    };
-
-    struct ast_constant { 
-        std::string id;
-        const void* value;
-
-        ast_constant(const std::string& s, const void* v) 
-            : id(s), value(v) {};
-        ~ast_constant() {};
-    };
-
-    struct ast_function { 
-        std::string id; 
-        gerador::var_types return_type;
-        std::list<param> params;
-        std::list<param> vars;
-        std::list<param> body;  
-    
-        ast_function(const std::string& s, gerador::var_types r, 
-            const std::list<param>& p, const std::list<param> v, const std::list<param>& b)
-            : id(s), return_type(r), params(p), vars(v), body(b) {};
-        ~ast_function() {};
-    };
-
-    struct ast_var { 
-        std::string id; 
-        gerador::var_types type; 
-        
-        ast_var(const std::string& s, gerador::var_types t) : id(s), type(t) {};
-        ~ast_var() {};
-    };
-
-    /* ~ESTRUTURAS DE CONTROLE~ */
-    struct ast_for { 
-        param init; 
-        param condition; 
-        param increment; 
-        std::list<param> loop; 
-
-        ast_for(param i, param c, param inc, const std::list<param>& l) 
-            : init(i), condition(c), increment(inc), loop(l) {};
-        ~ast_for() {};
-    };
-
-    struct ast_while { 
-        param condition; 
-        std::list<param> loop; 
-
-        ast_while(param c, const std::list<param>& l) : condition(c), loop(l) {};
-        ~ast_while() {};
-    };
-
-    struct ast_if { 
-        param condition; 
-        std::list<param> then_body; 
-        std::list<param> else_body; 
-
-        ast_if(param c, const std::list<param>& t, const std::list<param>& e) 
-            : condition(c), then_body(t), else_body(e) {};    
-        ~ast_if() {};
-    };
-
-    /* ~OPERADORES VARIÁDICOS~ */
-    struct ast_call { 
-        std::string id; 
-        std::list<param> params; 
-        
-        ast_call(const std::string& s, const std::list<param>& p) : id(s), params(p) {};
-        ~ast_call() {};
-    };
-
-    /* ~OPERADORES TERNÁRIOS, BINÁRIOS E UNÁRIOS~ */
-    struct ast_ternary { 
-        param condition; 
-        param then_body; 
-        param else_body; 
-
-        ast_ternary(param c, param t, param e) : condition(c), then_body(t), else_body(e) {};
-        ~ast_ternary() {};
-    };
-
-    struct ast_binary { 
-        param left; 
-        param right; 
-        
-        ast_binary(param l, param r) : left(l), right(r) {};
-        ~ast_binary() {};
-    };
-
-    struct ast_unary { 
-        param operand; 
-
-        ast_unary(param o) : operand(o) {};
-        ~ast_unary() {};
-    };
-
-    /* ~ATÔMICOS~ */
-    struct ast_text { 
-        std::string id;
-
-        ast_text(const std::string& s) : id(s) {};
-        ~ast_text() {};
-    };
-
-    struct ast_decimal { 
-        int value; 
-
-        ast_decimal(int v) : value(v) {};
-        ~ast_decimal() {};
-    };
-
-    union ast_node_representation {
-        ast_program _ast_program;
-
-        /* ~DECLARAÇÕES~ */
-        ast_constant _ast_constant;
-        ast_function _ast_function;
-        ast_var _ast_var;
-
-        /* _~ESTRUTURAS DE CONTROLE~ */
-        ast_for _ast_for;
-        ast_while _ast_while;
-        ast_if _ast_if;
-
-        /* _~OPERADORES VARIÁDICOS~ */
-        ast_call _ast_call;
-
-        /* _~OPERADORES TERNÁRIOS, BINÁRIOS E UNÁRIOS~ */
-        ast_ternary _ast_ternary;
-        ast_binary _ast_binary;
-        ast_unary _ast_unary;
-
-        /* _~ATÔMICOS~ */
-        ast_text _ast_text;
-        ast_decimal _ast_decimal;
-
-        ast_node_representation(const std::list<param>& commands) : _ast_program(commands) {};
-        ast_node_representation(const std::string& s, const void* v) : _ast_constant(s, v) {};
-        ast_node_representation(const std::string& s, gerador::var_types r, const std::list<param>& p, 
-            const std::list<param>& v, const std::list<param>& b) : _ast_function(s, r, p, v, b) {};
-        ast_node_representation(const std::string& s, gerador::var_types t) : _ast_var(s, t) {};
-        ast_node_representation(param i, param c, param inc, const std::list<param>& l) 
-            : _ast_for(i, c, inc, l) {};
-        ast_node_representation(param c, const std::list<param>& l) : _ast_while(c, l) {};
-        ast_node_representation(param c, const std::list<param>& t, const std::list<param>& e) 
-            : _ast_if(c, t, e) {};
-        ast_node_representation(const std::string& s, const std::list<param>& p) 
-            : _ast_call(s, p) {};
-        ast_node_representation(param c, param t, param e) : _ast_ternary(c, t, e) {};
-        ast_node_representation(param l, param r) : _ast_binary(l, r) {};
-        ast_node_representation(param o) : _ast_unary(o) {};
-        ast_node_representation(const std::string& s) : _ast_text(s) {};
-        ast_node_representation(int v) : _ast_decimal(v) {};
-        ~ast_node_representation() {};
-    };
-
     class ast_node { 
+        union ast_node_representation {
+            struct ast_program { 
+                std::vector<ast_node*> commands; 
+
+                ast_program(const std::vector<ast_node*>& c) : commands(c) {};
+                ~ast_program() {};
+            } program;
+
+            struct ast_constant { 
+                std::string id;
+                ast_node* value;
+
+                ast_constant(const std::string& s, ast_node* v) 
+                    : id(s), value(v) {};
+                ~ast_constant() {};
+            } constant;
+
+            struct ast_function { 
+                std::string id; 
+                gerador::var_types return_type;
+                std::vector<ast_node*> params;
+                std::vector<ast_node*> vars;
+                std::vector<ast_node*> body;  
+            
+                ast_function(const std::string& s, gerador::var_types r, 
+                    const std::vector<ast_node*>& p, const std::vector<ast_node*> v, const std::vector<ast_node*>& b)
+                    : id(s), return_type(r), params(p), vars(v), body(b) {};
+                ~ast_function() {};
+            } function;
+
+            struct ast_var { 
+                std::string id; 
+                gerador::var_types type; 
+                
+                ast_var(const std::string& s, gerador::var_types t) : id(s), type(t) {};
+                ~ast_var() {};
+            } var_or_param;
+
+            
+            struct ast_for { 
+                ast_node* init; 
+                ast_node* condition; 
+                ast_node* increment; 
+                std::vector<ast_node*> loop; 
+
+                ast_for(ast_node* i, ast_node* c, ast_node* inc, const std::vector<ast_node*>& l) 
+                    : init(i), condition(c), increment(inc), loop(l) {};
+                ~ast_for() {};
+            } for_loop;
+
+            struct ast_while { 
+                ast_node* condition; 
+                std::vector<ast_node*> loop; 
+
+                ast_while(ast_node* c, const std::vector<ast_node*>& l) : condition(c), loop(l) {};
+                ~ast_while() {};
+            } while_loop;
+
+            struct ast_if { 
+                ast_node* condition; 
+                std::vector<ast_node*> then_body; 
+                std::vector<ast_node*> else_body; 
+
+                ast_if(ast_node* c, const std::vector<ast_node*>& t, const std::vector<ast_node*>& e) 
+                    : condition(c), then_body(t), else_body(e) {};    
+                ~ast_if() {};
+            } if_else;
+
+            struct ast_call { 
+                std::string id; 
+                std::vector<ast_node*> params; 
+                
+                ast_call(const std::string& s, const std::vector<ast_node*>& p) : id(s), params(p) {};
+                ~ast_call() {};
+            } call;
+   
+            struct ast_ternary { 
+                ast_node* condition; 
+                ast_node* then_body; 
+                ast_node* else_body; 
+
+                ast_ternary(ast_node* c, ast_node* t, ast_node* e) : condition(c), then_body(t), else_body(e) {};
+                ~ast_ternary() {};
+            } ternary;
+
+            struct ast_binary { 
+                ast_node* left; 
+                ast_node* right; 
+                
+                ast_binary(ast_node* l, ast_node* r) : left(l), right(r) {};
+                ~ast_binary() {};
+            } binary;
+
+            struct ast_unary { 
+                ast_node* operand; 
+
+                ast_unary(ast_node* o) : operand(o) {};
+                ~ast_unary() {};
+            } unary;
+            
+            struct ast_id_or_string { 
+                std::string text;
+
+                ast_id_or_string(const std::string& s) : text(s) {};
+                ~ast_id_or_string() {};
+            } id_or_string;
+
+            struct ast_number { 
+                int value; 
+
+                ast_number(int v) : value(v) {};
+                ~ast_number() {};
+            } number;
+
+            ast_node_representation(const std::vector<ast_node*>& commands) : program(commands) {};
+            ast_node_representation(const std::string& s, ast_node* v) : constant(s, v) {};
+            ast_node_representation(const std::string& s, gerador::var_types r, const std::vector<ast_node*>& p, 
+                const std::vector<ast_node*>& v, const std::vector<ast_node*>& b) : function(s, r, p, v, b) {};
+            ast_node_representation(const std::string& s, gerador::var_types t) : var_or_param(s, t) {};
+            ast_node_representation(ast_node* i, ast_node* c, ast_node* inc, const std::vector<ast_node*>& l) 
+                : for_loop(i, c, inc, l) {};
+            ast_node_representation(ast_node* c, const std::vector<ast_node*>& l) : while_loop(c, l) {};
+            ast_node_representation(ast_node* c, const std::vector<ast_node*>& t, const std::vector<ast_node*>& e) 
+                : if_else(c, t, e) {};
+            ast_node_representation(const std::string& s, const std::vector<ast_node*>& p) 
+                : call(s, p) {};
+            ast_node_representation(ast_node* c, ast_node* t, ast_node* e) : ternary(c, t, e) {};
+            ast_node_representation(ast_node* l, ast_node* r) : binary(l, r) {};
+            ast_node_representation(ast_node* o) : unary(o) {};
+            ast_node_representation(const std::string& s) : id_or_string(s) {};
+            ast_node_representation(int v) : number(v) {};
+            ~ast_node_representation() {};
+        } rep;
         ast_node_types label;
-        ast_node_representation rep;
+        registers mapping;
 
         public:
-        ast_node(gerador::ast_node_types node_type, const std::list<param>& commands) 
-            : rep(commands), label(node_type) {};
-        ast_node(gerador::ast_node_types node_type, const std::string& s, const void* v) 
-            : rep(s, v), label(node_type) {};
+        ast_node(gerador::ast_node_types node_type, const std::vector<ast_node*>& commands) 
+            : rep(commands), label(node_type), mapping(registers::ZERO) {};
+        ast_node(gerador::ast_node_types node_type, const std::string& s, ast_node* v) 
+            : rep(s, v), label(node_type), mapping(registers::ZERO) {};
         ast_node(gerador::ast_node_types node_type, const std::string& s, gerador::var_types r, 
-            const std::list<param>& p, const std::list<param> v, const std::list<param>& b) 
-            : rep(s, r, p, v, b), label(node_type) {};
+            const std::vector<ast_node*>& p, const std::vector<ast_node*> v, const std::vector<ast_node*>& b) 
+            : rep(s, r, p, v, b), label(node_type), mapping(registers::ZERO) {};
         ast_node(gerador::ast_node_types node_type, const std::string& s, gerador::var_types t) 
-            : rep(s, t), label(node_type) {};
-        ast_node(gerador::ast_node_types node_type, param i, param c, param inc, 
-            const std::list<param>& l) 
-            : rep(i, c, inc, l), label(node_type) {};
-        ast_node(gerador::ast_node_types node_type, param c, const std::list<param>& l) 
-            : rep(c, l), label(node_type) {};
-        ast_node(gerador::ast_node_types node_type, param c, const std::list<param>& t, 
-            const std::list<param>& e) 
-            : rep(c, t, e), label(node_type) {};
-        ast_node(gerador::ast_node_types node_type, const std::string& s, 
-            const std::list<param>& p) 
-            : rep(s, p), label(node_type) {};
-        ast_node(gerador::ast_node_types node_type, param c, param t, param e) 
-            : rep(c, t, e), label(node_type) {};
-        ast_node(gerador::ast_node_types node_type, param l, param r) 
-            : rep(l, r), label(node_type) {};
-        ast_node(gerador::ast_node_types node_type, param o) 
-            : rep(o), label(node_type) {};
+            : rep(s, t), label(node_type), mapping(registers::ZERO) {};
+        ast_node(gerador::ast_node_types node_type, ast_node* i, ast_node* c, ast_node* inc, 
+            const std::vector<ast_node*>& l) 
+            : rep(i, c, inc, l), label(node_type), mapping(registers::ZERO) {};
+        ast_node(gerador::ast_node_types node_type, ast_node* c, const std::vector<ast_node*>& l) 
+            : rep(c, l), label(node_type), mapping(registers::ZERO) {};
+        ast_node(gerador::ast_node_types node_type, ast_node* c, const std::vector<ast_node*>& t, 
+            const std::vector<ast_node*>& e) 
+            : rep(c, t, e), label(node_type), mapping(registers::ZERO) {};
+        ast_node(gerador::ast_node_types node_type, const std::string& s, const std::vector<ast_node*>& p) 
+            : rep(s, p), label(node_type), mapping(registers::ZERO) {};
+        ast_node(gerador::ast_node_types node_type, ast_node* c, ast_node* t, ast_node* e) 
+            : rep(c, t, e), label(node_type), mapping(registers::ZERO) {};
+        ast_node(gerador::ast_node_types node_type, ast_node* l, ast_node* r) 
+            : rep(l, r), label(node_type), mapping(registers::ZERO) {};
+        ast_node(gerador::ast_node_types node_type, ast_node* o) 
+            : rep(o), label(node_type), mapping(registers::ZERO) {};
         ast_node(gerador::ast_node_types node_type, const std::string& s) 
-            : rep(s), label(node_type) {};
+            : rep(s), label(node_type), mapping(registers::ZERO) {};
         ast_node(gerador::ast_node_types node_type, int v) 
-            : rep(v), label(node_type) {};
+            : rep(v), label(node_type), mapping(registers::ZERO) {};
         ~ast_node() {};
 
         ast_node& operator=(const ast_node& node);
 
-        ast_node_representation& get_rep() { return rep; };
+        const ast_node_representation& get_rep() { return rep; };
 
-        ast_node_types get_label() { return label; };
+        const ast_node_types get_label() { return label; };
 
+        int get_number_value();
+
+        int eval_array_size();
+
+        void generate_code(gerador::instruction_set& is);
+        
         inline const char* to_string();
 
         void visit(void (*routine)(gerador::ast_node&));
+
     };
 
     void declare_node_dot(gerador::ast_node& node);
 
-    void declare_edge_dot(gerador::ast_node& node, const std::string& edge_label);
+    void declare_edge_dot(ast_node& node, const std::string& edge_label);
 
     void reset_index();
 }

@@ -2,8 +2,9 @@
 
 %{
 #include <cstdio>
-
+#include "ast.hh"
 #include "sintatico.yy.hh"
+extern YYSTYPE yylval;
 %}
 
 %%

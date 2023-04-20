@@ -4,7 +4,7 @@
 int offset(const std::vector<int>& dimensions, const std::vector<int>& indexes) {
     int sum = 0,
         product = 1;
-
+    dimensions.empty();
     for(int k = 0; k < dimensions.size(); k++) {
         for(int l = k + 1; l < dimensions.size(); l++) {
             product *= dimensions[l];
