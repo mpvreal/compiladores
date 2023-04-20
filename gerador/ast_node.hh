@@ -183,13 +183,15 @@ namespace gerador {
 
         const ast_node_types get_label() { return label; };
 
+        inline const char* to_string();
+        
         int get_number_value();
 
         int eval_array_size();
 
-        void generate_code(gerador::instruction_set& is);
-        
-        inline const char* to_string();
+        void generate_code(instruction_set& is);
+
+        void free_registers_from_subtree(instruction_set& is);
 
         void visit(void (*routine)(gerador::ast_node&));
 

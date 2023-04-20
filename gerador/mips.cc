@@ -137,14 +137,14 @@ const std::string& gerador::instruction_set::get_current_label() {
     return current_label;
 }
 
-void gerador::instruction_set::clear_temp_reg() {
-    for(registers r = T0; r <= T7; r++)
-        context_stack.back().registers[r] = false;
+// void gerador::instruction_set::clear_temp_reg() {
+//     for(registers r = T0; r <= T7; r++)
+//         context_stack.back().registers[r] = false;
 
-    for(registers r = T8; r <= T9; r++) {
-        context_stack.back().registers[r] = false;
-    }
-}
+//     for(registers r = T8; r <= T9; r++) {
+//         context_stack.back().registers[r] = false;
+//     }
+// }
 
 void gerador::instruction_set::use_printf() {
     printf = true;

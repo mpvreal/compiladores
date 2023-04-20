@@ -181,6 +181,7 @@ void gerador::ast_node::generate_code(gerador::instruction_set& is) {
     symbol* s = nullptr;
     registers chosen_reg = ZERO;
     int label1 = 0, label2 = 0, label3 = 0, label4 = 0;
+    int space_shift = 0, stack_pointer = 0;
     bool nested_call = false;
 
     switch(label) {
@@ -209,8 +210,7 @@ void gerador::ast_node::generate_code(gerador::instruction_set& is) {
                 is.add_text(ORI, V0, ZERO, 10);
                 is.add_text(SYSCALL, "exit");
             }
-
-            is.clear_temp_reg();
+            free_registers_from_subtree(is);
             is.delete_context();
             break;
         case gerador::ast_node_types::GLOBAL_VAR:
@@ -218,12 +218,12 @@ void gerador::ast_node::generate_code(gerador::instruction_set& is) {
             break;
         case gerador::ast_node_types::VAR:
             is.add_variable(rep.var_or_param.id, rep.var_or_param.type);
-            is.set_register(is.get_current_var(), true);
+            // is.set_register(is.get_current_var(), true);
             break;
         case gerador::ast_node_types::PARAM:
             is.add_parameter(rep.var_or_param.id, gerador::ast_node_types::PARAM, 
                 rep.var_or_param.type);
-            is.set_register(is.get_current_param(), true);
+            // is.set_register(is.get_current_param(), true);
             break;
         case gerador::ast_node_types::FOR:
             rep.for_loop.init->generate_code(is);
@@ -234,20 +234,20 @@ void gerador::ast_node::generate_code(gerador::instruction_set& is) {
             }
             break;
         case gerador::ast_node_types::WHILE:
-            is.clear_temp_reg();
+            free_registers_from_subtree(is);
             is.add_text(J, "L" + std::to_string(label_counter + 1));
             HANDLE_WHILE();
-            is.clear_temp_reg();
+            free_registers_from_subtree(is);
             break;
         case gerador::ast_node_types::DO_WHILE:
-            is.clear_temp_reg();
+            free_registers_from_subtree(is);
             HANDLE_WHILE();
-            is.clear_temp_reg();
+            free_registers_from_subtree(is);
             break;
         case gerador::ast_node_types::IF:
             label1 = label_counter++;
             label2 = label_counter++;
-            is.clear_temp_reg();
+            free_registers_from_subtree(is);
             rep.if_else.condition->generate_code(is);
             is.add_text(BEQ, rep.if_else.condition->mapping, ZERO,
                 "L" + std::to_string(label1));
@@ -262,15 +262,19 @@ void gerador::ast_node::generate_code(gerador::instruction_set& is) {
             }
             is.add_label("L" + std::to_string(label2));
             // ++label_counter;
-            // is.clear_temp_reg();
+            free_registers_from_subtree(is);
             break;
         case gerador::ast_node_types::CALL:
-            is.add_text(ADDI, SP, SP, -4 * 12);
-            for(registers r = A0; r <= A3; r++) {
-                is.add_text(SW, r, SP, (A3 - r + 8) * 4);
+            for(registers r = A0; r <= T9; r++) {
+                if(is.get_registers()[r])
+                    space_shift += 4;
             }
-            for(registers r = S0; r <= S7; r++) {
-                is.add_text(SW, r, SP, (S7 - r) * 4);
+            is.add_text(ADDI, SP, SP, -(space_shift + 4));
+            for(registers r = A0; r <= T9; r++) {
+                if(is.get_registers()[r]) {
+                    is.add_text(SW, r, SP, stack_pointer);
+                    stack_pointer += 4;
+                }
             }
             for(ast_node* n : rep.call.params) {
                 if(n->label == CALL || n->label == PRINTF || n->label == SCANF)
@@ -281,21 +285,22 @@ void gerador::ast_node::generate_code(gerador::instruction_set& is) {
                 if(n->label != CALL && n->label && PRINTF && n->label != SCANF)
                     n->generate_code(is);
                 is.add_text(OR, chosen_reg++, ZERO, n->mapping);
-                // is.set_register(chosen_reg++, true);
+                n->free_registers_from_subtree(is);
             }
-            is.add_text(ADDI, SP, SP, -4);
-            is.add_text(SW, RA, SP, 0);
+            is.add_text(SW, RA, SP, stack_pointer);
             is.add_text(JAL, rep.call.id);
-            is.add_text(LW, RA, SP, 0);
-            for(registers r = S7; r >= S0; r--) {
-                is.add_text(LW, r, SP, (S7 - r + 1) * 4);
+            is.add_text(LW, RA, SP, stack_pointer);
+            stack_pointer -= 4;
+            for(registers r = T9; r >= A0; r--) {
+                if(is.get_registers()[r]) {
+                    is.add_text(LW, r, SP, stack_pointer);
+                    stack_pointer -= 4;
+                }
             }
-            for(registers r = A3; r >= A0; r--) {
-                is.add_text(LW, r, SP, (A3 - r + 9) * 4);
-            }
-            is.add_text(ADDI, SP, SP, 4 * 13);
+            is.add_text(ADDI, SP, SP, space_shift + 4);
             mapping = is.map_register();
             is.add_text(OR, mapping, ZERO, V0);
+            free_registers_from_subtree(is);
             break;
         case gerador::ast_node_types::PRINTF:
             for(ast_node* n : rep.call.params) {
@@ -470,9 +475,9 @@ void gerador::ast_node::generate_code(gerador::instruction_set& is) {
             rep.binary.right->generate_code(is);
 
             HANDLE_BINARY();
-            is.add_text(ADD, rep.binary.left->mapping, ZERO, rep.binary.right->mapping);
-            is.add_text(ADD, mapping, ZERO, rep.binary.left->mapping);
-            is.clear_temp_reg();
+            is.add_text(OR, rep.binary.left->mapping, ZERO, rep.binary.right->mapping);
+            is.add_text(OR, mapping, ZERO, rep.binary.left->mapping);
+            free_registers_from_subtree(is);
             break;
         case gerador::ast_node_types::ADD_ASSIGN:
             rep.binary.left->generate_code(is);
@@ -482,7 +487,7 @@ void gerador::ast_node::generate_code(gerador::instruction_set& is) {
             is.add_text(ADD, rep.binary.left->mapping, rep.binary.left->mapping, 
                 rep.binary.right->mapping);
             is.add_text(OR, mapping, ZERO, rep.binary.left->mapping);
-            is.clear_temp_reg();
+            free_registers_from_subtree(is);
             break;
 
         case gerador::ast_node_types::MINUS_ASSIGN:
@@ -762,6 +767,115 @@ void gerador::ast_node::visit(void (*routine)(gerador::ast_node&)) {
 inline const char* gerador::ast_node::to_string() {
     // std::cout << label << std::endl;
     return node_labels[label];
+}
+
+void gerador::ast_node::free_registers_from_subtree(gerador::instruction_set& is) {
+    // do a switch case on label with ALL of the entries of ast_node_types
+    // for each case, call free_registers_from_subtree on all of the children   
+    // of that node
+    switch(label) {
+        case gerador::ast_node_types::PROGRAM:
+            for(ast_node* n : rep.program.commands) {
+                n->free_registers_from_subtree(is);
+            }
+            break;
+        case gerador::ast_node_types::FUNCTION:
+            for(ast_node* n : rep.function.params) {
+                n->free_registers_from_subtree(is);
+            }
+            for(ast_node* n : rep.function.vars) {
+                n->free_registers_from_subtree(is);
+            }
+            for(ast_node* n : rep.function.body) {
+                n->free_registers_from_subtree(is);
+            }
+            break;
+        case gerador::ast_node_types::CONSTANT:
+                rep.constant.value->free_registers_from_subtree(is);
+            break;
+        case gerador::ast_node_types::FOR:
+            rep.for_loop.init->free_registers_from_subtree(is);
+            rep.for_loop.condition->free_registers_from_subtree(is);
+            rep.for_loop.increment->free_registers_from_subtree(is);
+            for(ast_node* n : rep.for_loop.loop) {
+                n->free_registers_from_subtree(is);
+            }
+            break;
+        case gerador::ast_node_types::WHILE:
+        case gerador::ast_node_types::DO_WHILE:
+            rep.while_loop.condition->free_registers_from_subtree(is);
+            for(ast_node* n : rep.while_loop.loop) {
+                n->free_registers_from_subtree(is);
+            }
+            break;
+        case gerador::ast_node_types::IF:
+            rep.if_else.condition->free_registers_from_subtree(is);
+
+            for(ast_node* n : rep.if_else.then_body) {
+                n->free_registers_from_subtree(is);
+            }
+            for(ast_node* n : rep.if_else.else_body) {
+                n->free_registers_from_subtree(is);
+            }
+            break;
+        case gerador::ast_node_types::CALL:
+        case gerador::ast_node_types::PRINTF:
+        case gerador::ast_node_types::SCANF:
+            for(ast_node* n : rep.call.params) {
+                n->free_registers_from_subtree(is);
+            }
+            break;  
+        case gerador::ast_node_types::TERNARY:
+            rep.ternary.condition->free_registers_from_subtree(is);
+            rep.ternary.then_body->free_registers_from_subtree(is);
+            rep.ternary.else_body->free_registers_from_subtree(is);
+            break;
+        case gerador::ast_node_types::PLUS:
+        case gerador::ast_node_types::MINUS:
+        case gerador::ast_node_types::MULTIPLY:
+        case gerador::ast_node_types::DIVISION:
+        case gerador::ast_node_types::REMAINDER:
+        case gerador::ast_node_types::BITWISE_AND:
+        case gerador::ast_node_types::BITWISE_OR:
+        case gerador::ast_node_types::BITWISE_XOR:
+        case gerador::ast_node_types::LOGICAL_AND:
+        case gerador::ast_node_types::LOGICAL_OR:
+        case gerador::ast_node_types::EQUAL:
+        case gerador::ast_node_types::NOT_EQUAL:
+        case gerador::ast_node_types::LESS_THAN:
+        case gerador::ast_node_types::GREATER_THAN:
+        case gerador::ast_node_types::LESS_EQUAL:
+        case gerador::ast_node_types::GREATER_EQUAL:
+        case gerador::ast_node_types::R_SHIFT:
+        case gerador::ast_node_types::L_SHIFT:
+        case gerador::ast_node_types::ASSIGN:
+        case gerador::ast_node_types::ADD_ASSIGN:
+        case gerador::ast_node_types::MINUS_ASSIGN:
+            rep.binary.left->free_registers_from_subtree(is);
+            rep.binary.right->free_registers_from_subtree(is);
+            break;
+        case gerador::ast_node_types::PRE_INC:
+        case gerador::ast_node_types::PRE_DEC:
+        case gerador::ast_node_types::POST_INC:
+        case gerador::ast_node_types::POST_DEC:
+        case gerador::ast_node_types::BITWISE_NOT:
+        case gerador::ast_node_types::REFERENCE:
+        case gerador::ast_node_types::DEFERENCE:
+        case gerador::ast_node_types::NEGATIVE:
+        case gerador::ast_node_types::POSITIVE:
+        case gerador::ast_node_types::NOT:
+        case gerador::ast_node_types::EXIT:
+        case gerador::ast_node_types::RETURN:
+            if(rep.unary.operand)
+                rep.unary.operand->free_registers_from_subtree(is);
+            break;
+        default:
+            break;
+    }
+    if(IS_TEMP(mapping)) {
+    is.set_register(mapping, false);
+    mapping = ZERO;
+    }
 }
 
 void gerador::declare_node_dot(gerador::ast_node& node) {
