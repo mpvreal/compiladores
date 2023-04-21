@@ -319,16 +319,16 @@ void gerador::ast_node::generate_code(instruction_set& is, bool ref_global_var) 
                 }
             }
             for(ast_node* n : rep.call.params) {
-                if(n->label == CALL || n->label == PRINTF || n->label == SCANF)
+                // if(n->label == CALL || n->label == PRINTF || n->label == SCANF)
                     n->generate_code(is);
             }
             chosen_reg = A0;
             for(ast_node* n : rep.call.params) {
-                if(n->label != CALL && n->label && PRINTF && n->label != SCANF)
-                    n->generate_code(is);
+                // if(n->label != CALL && n->label && PRINTF && n->label != SCANF)
+                //     n->generate_code(is);
                 is.add_text(OR, chosen_reg++, ZERO, n->mapping);
-                n->free_registers_from_subtree(is);
             }
+            free_registers_from_subtree(is);
             is.add_text(SW, RA, SP, stack_pointer);
             is.add_text(JAL, rep.call.id);
             is.add_text(LW, RA, SP, stack_pointer);
