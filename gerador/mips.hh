@@ -155,7 +155,7 @@ namespace gerador {
             std::map<std::string, symbol> symbols;
             bool registers[32];
 
-            context() : symbols(), registers({ false }) {};
+            context() : symbols(), registers{ false } {};
             ~context() {};
         };
 

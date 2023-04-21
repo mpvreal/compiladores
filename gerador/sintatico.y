@@ -441,9 +441,9 @@ While
     ;
 
 DoWhile
-    : DO_WHILE L_PAREN Expression COMMA StatementList R_PAREN {
-        $$ = new gerador::ast_node(gerador::ast_node_types::DO_WHILE, $3,
-            *$5);
+    : DO_WHILE L_PAREN StatementList COMMA Expression R_PAREN {
+        $$ = new gerador::ast_node(gerador::ast_node_types::DO_WHILE, $5,
+            *$3);
     }
     ;
 
