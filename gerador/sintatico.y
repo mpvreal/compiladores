@@ -83,9 +83,9 @@ ConstantDeclaration
         $$ = new gerador::ast_node(
             gerador::ast_node_types::CONSTANT, std::string($3), $6);
 
-        is.add_const($3, $6->get_number_value());
+        // is.add_const($3, $6->get_number_value());
 
-        delete $6;
+        // delete $6;
     }
     ;
 
@@ -111,9 +111,9 @@ GlobalVarDeclaration
             // }
 
             array_map.insert({std::string($3), dimension_products});
-            $$ = new gerador::ast_node(gerador::ast_node_types::GLOBAL_VAR, 
-                std::string($3), $6);
         }
+        $$ = new gerador::ast_node(gerador::ast_node_types::GLOBAL_VAR, 
+            std::string($3), $6);
         is.add_global_var($3, $6, is.offset());
         is.add_data($3, gerador::global_type::SPACE, 
             size * (($6 != gerador::var_types::CHAR) ? 4 : 1));

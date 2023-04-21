@@ -220,6 +220,7 @@ void gerador::instruction_set::add_variable(const std::string& name,
 
 void gerador::instruction_set::add_global_var(const std::string& name, 
         var_types t, int v) {
+    // std::cerr << "Global var: " << name << "Type" << t << std::endl;
     context_stack.back().symbols.insert({name, symbol(ast_node_types::GLOBAL_VAR, t, v)});
     switch(t) {
         case var_types::INT:

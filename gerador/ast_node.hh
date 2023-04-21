@@ -189,7 +189,9 @@ namespace gerador {
 
         int eval_array_size();
 
-        void generate_code(instruction_set& is);
+        void generate_code(instruction_set& is, bool ref_global_var = false);
+
+        void store_memory(instruction_set& is);
 
         void free_registers_from_subtree(instruction_set& is);
 
