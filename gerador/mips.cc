@@ -11,8 +11,8 @@ static const char* const register_labels[] = {
 
 static const char* const op_labels[] = {
     "add", "sub", "addi", "addu", "subu", "addiu", "mul", "mult", "div", "and", "or", "andi", "ori",
-    "sll", "srl", "lw", "sw", "lui", "mfhi", "mflo", "beq", "bne", "slt", "slti", "j", "jr", "jal", 
-    "", "", "la", "nor", "sltu", "xori", "srav"
+    "sllv", "srl", "lw", "sw", "lui", "mfhi", "mflo", "beq", "bne", "slt", "slti", "j", "jr", "jal", 
+    "", "", "la", "nor", "sltu", "xori", "srav", "xor"
 };
 
 static const char* printf_snippet = "printf:\n" \
@@ -24,49 +24,49 @@ static const char* printf_snippet = "printf:\n" \
                                     "	sw	$a1, ($sp)\n" \
                                     "	add	$t9, $zero, $sp\n" \
                                     "	add	$t0, $zero, $a0\n" \
-                                    "	j	teste_end\n" \
-                                    "while:\n" \
+                                    "	j	teste_end___\n" \
+                                    "printf_loop___:\n" \
                                     "	addi	$t1, $zero, '%'\n" \
-                                    "	beq	$a0, $t1, print_arg\n" \
+                                    "	beq	$a0, $t1, print_arg___\n" \
                                     "	addi	$v0, $zero, 11\n" \
                                     "	syscall\n" \
                                     "	addi 	$t0, $t0, 1	\n" \
-                                    "teste_end:\n" \
+                                    "teste_end___:\n" \
                                     "	lb	$a0, ($t0)\n" \
-                                    "	bne	$a0, $zero, while\n" \
+                                    "	bne	$a0, $zero, printf_loop___\n" \
                                     "	jr	$ra\n" \
-                                    "print_arg:\n" \
+                                    "print_arg___:\n" \
                                     "	addi	$t0, $t0, 1\n" \
                                     "	lb	$a0, ($t0)\n" \
-                                    "c:	addi	$t1, $zero, 'c'\n" \
-                                    "	bne	$t0, $t1, d\n" \
+                                    "	addi	$t1, $zero, 'c'\n" \
+                                    "	bne	$t0, $t1, d___\n" \
                                     "	lw	$a0, ($t9)\n" \
                                     "	addi	$t9, $t9, 4\n" \
                                     "	addi	$v0, $zero, 11\n" \
                                     "	syscall\n" \
                                     "	addi	$t0, $t0, 1\n" \
-                                    "	j 	teste_end\n" \
-                                    "d:	addi	$t1, $zero, 'd'\n" \
-                                    "	bne	$a0, $t1, s\n" \
+                                    "	j 	teste_end___\n" \
+                                    "d___:	addi	$t1, $zero, 'd'\n" \
+                                    "	bne	$a0, $t1, s___\n" \
                                     "	lw	$a0, ($t9)\n" \
                                     "	addi	$t9, $t9, 4\n" \
                                     "	addi	$v0, $zero, 1\n" \
                                     "	syscall\n" \
                                     "	addi	$t0, $t0, 1\n" \
-                                    "	j 	teste_end\n" \
-                                    "s:	addi	$t1, $zero, 's'\n" \
-                                    "	bne	$a0, $t1, default\n" \
+                                    "	j 	teste_end___\n" \
+                                    "s___:	addi	$t1, $zero, 's'\n" \
+                                    "	bne	$a0, $t1, l___\n" \
                                     "	lw	$a0, ($t9)\n" \
                                     "	addi	$t9, $t9, 4\n" \
                                     "	addi	$v0, $zero, 4\n" \
                                     "	syscall\n" \
                                     "	addi	$t0, $t0, 1\n" \
-                                    "	j 	teste_end\n" \
-                                    "default:\n" \
+                                    "	j 	teste_end___\n" \
+                                    "l___:\n" \
                                     "	addi	$v0, $zero, 11\n" \
                                     "	syscall\n" \
                                     "	addi	$t0, $t0, 1\n" \
-                                    "	j	teste_end";
+                                    "	j	teste_end___";
 
 gerador::registers& gerador::operator++(gerador::registers& r) {
     return r = static_cast<gerador::registers>(static_cast<int>(r) + 1);
@@ -262,16 +262,15 @@ void gerador::instruction_set::print() {
     std::cout << ".globl main" << std::endl;
     std::cout << ".data" << std::endl;
     for(auto& d : data) {
-        std::cout << '\t' << d.first << ":\t";
-        switch(d.second.type) {
-            case global_type::ASCIIZ:
-                std::cout << " .asciiz" << ' ' << d.second.value << std::endl;
-                break;
-            case global_type::SPACE:
-                std::cout << " .space" << ' ' << d.second.size << std::endl;
-                break;
-            default:
-                break;
+        if(d.second.type == SPACE) {
+            std::cout << '\t' << d.first << ":\t";
+            std::cout << " .space" << ' ' << d.second.size << std::endl;
+        }
+    }
+    for(auto& d : data) {
+        if(d.second.type == ASCIIZ) {
+            std::cout << '\t' << d.first << ":\t";
+            std::cout << " .asciiz" << ' ' << d.second.value << std::endl;
         }
     }
     std::cout << ".text" << std::endl;

@@ -15,8 +15,9 @@ namespace gerador {
     typedef bool registers_in_use[32];
 
     enum opcode {
-        ADD, SUB, ADDI, ADDU, SUBU, ADDIU, MUL, MULT, DIV, AND, OR, ANDI, ORI, SLL, SRL, LW, SW, 
-        LUI, MFHI, MFLO, BEQ, BNE, SLT, SLTI, J, JR, JAL, SYSCALL, LABEL, LA, NOR, SLTU, XORI, SRAV
+        ADD, SUB, ADDI, ADDU, SUBU, ADDIU, MUL, MULT, DIV, AND, OR, ANDI, ORI, SLLV, SRL, LW, SW, 
+        LUI, MFHI, MFLO, BEQ, BNE, SLT, SLTI, J, JR, JAL, SYSCALL, LABEL, LA, NOR, SLTU, XORI, SRAV,
+        XOR
     };
 
     enum registers {

@@ -53,7 +53,10 @@ namespace gerador {
         ID,                      
         NUMBER,                 
         STRING,                  
-        CHARACTER                
+        CHARACTER,
+        STORE,                  
+        ADD_STORE,              
+        MINUS_STORE
     };
 }
 

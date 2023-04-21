@@ -177,6 +177,8 @@ namespace gerador {
             : rep(v), label(node_type), mapping(registers::ZERO) {};
         ~ast_node() {};
 
+        ast_node* bypass_deference();
+
         ast_node& operator=(const ast_node& node);
 
         const ast_node_representation& get_rep() { return rep; };
@@ -191,7 +193,7 @@ namespace gerador {
 
         void generate_code(instruction_set& is, bool ref_global_var = false);
 
-        void store_memory(instruction_set& is);
+        // void store_memory(instruction_set& is);
 
         void free_registers_from_subtree(instruction_set& is);
 

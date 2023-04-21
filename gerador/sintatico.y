@@ -116,7 +116,7 @@ GlobalVarDeclaration
             std::string($3), $6);
         is.add_global_var($3, $6, is.offset());
         is.add_data($3, gerador::global_type::SPACE, 
-            size * (($6 != gerador::var_types::CHAR) ? 4 : 1));
+            size * 4);
     }
     ;
 
@@ -234,6 +234,12 @@ UOP
 
 Expression
     : BOP L_PAREN Expression COMMA Expression R_PAREN {
+        if($1 >= gerador::ast_node_types::ASSIGN && $1 <= gerador::ast_node_types::MINUS_ASSIGN) {
+            if($3->get_label() == gerador::ast_node_types::DEFERENCE) {
+                $1 = static_cast<gerador::ast_node_types>(static_cast<int>($1) + static_cast<int>(gerador::ast_node_types::STORE) - static_cast<int>(gerador::ast_node_types::ASSIGN));
+                $3 = $3->bypass_deference();
+            }
+        }
         $$ = new gerador::ast_node($1, $3, $5);
     }
     | UOP L_PAREN Expression R_PAREN {
@@ -270,9 +276,9 @@ Expression
         $$ = new gerador::ast_node(gerador::ast_node_types::TERNARY, $3, $5, $7);
     }
     | ID Array {
+        gerador::symbol* s = is.get_symbol($1);
         if(!$2->empty()) {
             std::vector<int>& products = array_map.find($1)->second;
-            gerador::symbol* s = is.get_symbol($1);
             if(s != nullptr) switch(s->type) {
                 case gerador::var_types::INT:
                 case gerador::var_types::POINTER:
@@ -285,7 +291,7 @@ Expression
                     break;
             }
             
-            gerador::ast_node* n = new gerador::ast_node(gerador::ast_node_types::ID, std::string($1));
+            gerador::ast_node* n = new gerador::ast_node(gerador::ast_node_types::NUMBER, 0);
 
             for(int i = 0; i < products.size(); i++) {
                 n = new gerador::ast_node(gerador::ast_node_types::PLUS, n, 
@@ -295,9 +301,15 @@ Expression
                         new gerador::ast_node(gerador::ast_node_types::NUMBER, 4)), (*$2)[i]));
             }
 
-            $$ = new gerador::ast_node(gerador::ast_node_types::DEFERENCE, n);
+            $$ = new gerador::ast_node(gerador::ast_node_types::DEFERENCE, 
+                new gerador::ast_node(gerador::ast_node_types::PLUS, n,
+                    new gerador::ast_node(gerador::ast_node_types::ID, std::string($1))));
         } else {
-            $$ = new gerador::ast_node(gerador::ast_node_types::ID, std::string($1));
+            if(s != nullptr && s->tag == gerador::ast_node_types::GLOBAL_VAR)
+                $$ = new gerador::ast_node(gerador::ast_node_types::DEFERENCE, 
+                    new gerador::ast_node(gerador::ast_node_types::ID, std::string($1)));
+            else
+                $$ = new gerador::ast_node(gerador::ast_node_types::ID, std::string($1));
         }
     }
     | ID L_PAREN Arguments R_PAREN {
@@ -555,9 +567,9 @@ void yyerror(char *s) {
 }
 
 int main(int argc, char **argv) {
-    #ifdef YYDEBUG
+    /* #ifdef YYDEBUG
         yydebug = 1;
-    #endif
+    #endif */
 
     yyparse();
 
