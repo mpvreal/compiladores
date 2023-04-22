@@ -82,10 +82,6 @@ ConstantDeclaration
     : CONSTANT COLON ID VALUE COLON Literal SEPARATOR {
         $$ = new gerador::ast_node(
             gerador::ast_node_types::CONSTANT, std::string($3), $6);
-
-        // is.add_const($3, $6->get_number_value());
-
-        // delete $6;
     }
     ;
 
@@ -105,11 +101,6 @@ GlobalVarDeclaration
                 product = 1;
             }
 
-            // std::cout << "dimension_products = " << std::endl;
-            // for(auto& i : dimension_products) {
-            //     std::cout << i << ' ';
-            // }
-
             array_map.insert({std::string($3), dimension_products});
         }
         $$ = new gerador::ast_node(gerador::ast_node_types::GLOBAL_VAR, 
@@ -127,7 +118,9 @@ FunctionDeclaration
         $$ = new gerador::ast_node(gerador::ast_node_types::FUNCTION, 
             std::string($3), $7, *$9, 
             *$10, *$11);
+        delete $9;
         delete $10;
+        delete $11;
     }
     ;
 
@@ -236,8 +229,13 @@ Expression
     : BOP L_PAREN Expression COMMA Expression R_PAREN {
         if($1 >= gerador::ast_node_types::ASSIGN && $1 <= gerador::ast_node_types::MINUS_ASSIGN) {
             if($3->get_label() == gerador::ast_node_types::DEFERENCE) {
-                $1 = static_cast<gerador::ast_node_types>(static_cast<int>($1) + static_cast<int>(gerador::ast_node_types::STORE) - static_cast<int>(gerador::ast_node_types::ASSIGN));
+                $1 = static_cast<gerador::ast_node_types>
+                    (static_cast<int>($1) + static_cast<int>(gerador::ast_node_types::STORE) - 
+                        static_cast<int>(gerador::ast_node_types::ASSIGN));
+                gerador::ast_node* temp = $3;
                 $3 = $3->bypass_deference();
+                // if($3 != temp)
+                //     delete temp;
             }
         }
         $$ = new gerador::ast_node($1, $3, $5);
@@ -311,6 +309,7 @@ Expression
             else
                 $$ = new gerador::ast_node(gerador::ast_node_types::ID, std::string($1));
         }
+        delete $2;
     }
     | ID L_PAREN Arguments R_PAREN {
         auto to_upper_case = [](char (&str)[256]) -> std::string {
@@ -326,6 +325,8 @@ Expression
             $$ = new gerador::ast_node(gerador::ast_node_types::SCANF, std::string($1), *$3);
         } else
             $$ = new gerador::ast_node(gerador::ast_node_types::CALL, std::string($1), *$3);
+        
+        delete $3;
     }
     | Literal { $$ = $1; }
     ;
@@ -437,6 +438,7 @@ While
     : WHILE L_PAREN Expression COMMA StatementList R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::WHILE, $3,
             *$5);
+        delete $5;
     }
     ;
 
@@ -444,6 +446,7 @@ DoWhile
     : DO_WHILE L_PAREN StatementList COMMA Expression R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::DO_WHILE, $5,
             *$3);
+        delete $3;
     }
     ;
 
@@ -451,6 +454,7 @@ For
     : FOR L_PAREN Expression COMMA Expression COMMA Expression COMMA StatementList R_PAREN {
         $$ = new gerador::ast_node(gerador::ast_node_types::FOR, $3, $5, $7,
             *$9);
+        delete $9;
     }
     ;
 
@@ -578,6 +582,6 @@ int main(int argc, char **argv) {
     is.print();
 
     /* program.draw(); */
- 
+
     return 0;
 }

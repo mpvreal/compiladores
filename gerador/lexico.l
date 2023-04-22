@@ -5,6 +5,8 @@
 #include "ast.hh"
 #include "sintatico.yy.hh"
 extern YYSTYPE yylval;
+
+char parse_char(const char* str);
 %}
 
 %%
@@ -64,7 +66,7 @@ extern YYSTYPE yylval;
 [_a-zA-Z][_a-zA-Z0-9]*      { strcpy(yylval.string, yytext); return ID;}
 [0-9]+                      { yylval.number = std::atoi(yytext); return NUMBER; }
 ["]([^"\\\n]|\\.|\\\n)*["]  { strcpy(yylval.string, yytext); return STRING; }
-'([^'\\\n]|\\.)'            { yylval.character = 0; return CHARACTER; }
+'([^'\\\n]|\\.)'            { yylval.character = parse_char(yytext); return CHARACTER; }
 
 [\t\f\h ]+                  {  }
 [;\n\r\v\t\f\h ]+           { return SEPARATOR; }
@@ -72,3 +74,23 @@ extern YYSTYPE yylval;
 .                           { exit(-1); }
 
 %%
+
+char parse_char(const char* str) {
+    if(str[1] == '\\') {
+        switch(str[2]) {
+            case 'a': return '\a';
+            case 'b': return '\b';
+            case 'f': return '\f';
+            case 'n': return '\n';
+            case 'r': return '\r';
+            case 't': return '\t';
+            case 'v': return '\v';
+            case '\\': return '\\';
+            case '\'': return '\'';
+            case '\"': return '\"';
+            case '?': return '\?';
+            default: return str[2];
+        }
+    }
+    return str[1];
+}

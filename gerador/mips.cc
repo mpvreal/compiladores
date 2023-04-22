@@ -15,7 +15,7 @@ static const char* const op_labels[] = {
     "", "", "la", "nor", "sltu", "xori", "srav", "xor"
 };
 
-static const char* printf_snippet = "printf:\n" \
+static const char* const printf_snippet = "printf:\n" \
                                     "	addi	$sp, $sp, -4\n" \
                                     "	sw	$a3, ($sp)\n" \
                                     "	addi	$sp, $sp, -4\n" \
@@ -34,12 +34,13 @@ static const char* printf_snippet = "printf:\n" \
                                     "teste_end___:\n" \
                                     "	lb	$a0, ($t0)\n" \
                                     "	bne	$a0, $zero, printf_loop___\n" \
+                                    "   add $sp, $sp, 12\n"\
                                     "	jr	$ra\n" \
                                     "print_arg___:\n" \
                                     "	addi	$t0, $t0, 1\n" \
                                     "	lb	$a0, ($t0)\n" \
                                     "	addi	$t1, $zero, 'c'\n" \
-                                    "	bne	$t0, $t1, d___\n" \
+                                    "	bne	$a0, $t1, d___\n" \
                                     "	lw	$a0, ($t9)\n" \
                                     "	addi	$t9, $t9, 4\n" \
                                     "	addi	$v0, $zero, 11\n" \
@@ -93,6 +94,12 @@ gerador::registers gerador::operator--(gerador::registers& r, int) {
 gerador::instruction_set::instruction_set() : current_offset(0), current_var(registers::S0), 
         current_param(registers::A0), printf(false) { 
     context_stack.push_back(context()); 
+}
+
+gerador::instruction_set::~instruction_set() {
+    for(instruction* i : text) {
+        delete i;
+    }
 }
 
 gerador::symbol* gerador::instruction_set::get_symbol(const std::string& label) {

@@ -9,7 +9,7 @@ namespace gerador {
 
         public:
         ast() {};
-        ~ast() {};
+        ~ast() { delete program; };
 
         void set_program(ast_node* p);
 

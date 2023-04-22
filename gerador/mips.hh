@@ -59,8 +59,7 @@ namespace gerador {
             opcode op;
 
             virtual std::string to_string() = 0;
-            
-            protected:
+    
             instruction(opcode op) : op(op) {};
             ~instruction() {};
 
@@ -172,7 +171,7 @@ namespace gerador {
 
         public:
         instruction_set();
-        ~instruction_set() {};
+        ~instruction_set();
 
         symbol* get_symbol(const std::string& label);
 
